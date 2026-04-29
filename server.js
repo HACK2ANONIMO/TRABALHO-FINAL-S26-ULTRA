@@ -186,6 +186,50 @@ app.post('/send-email-batch', async (req, res) => {
     res.json({ ok: allOk, results });
 });
 
+// ────────────────────────────────────────────────────────────
+// API — Novo endpoint para enviar emails via emailSender.js
+// Compatível com a função vanilla enviarEmailParaInstituicao()
+// ────────────────────────────────────────────────────────────
+app.post('/api/enviar-email', async (req, res) => {
+    const { para, assunto, html, texto, remetente, nomeRemetente, contatoRemetente } = req.body || {};
+    
+    if (!para || !assunto) {
+        return res.status(400).json({ erro: 'Campos obrigatórios em falta: para, assunto' });
+    }
+
+    try {
+        console.log(`[API Email] Enviando para: ${para}, Assunto: ${assunto}`);
+        
+        const emailOpts = {
+            to: para,
+            subject: assunto,
+            html: html || '',
+            text: texto || assunto,
+            // Adicionar contexto do remetente, se fornecido
+            replyTo: contatoRemetente || undefined,
+        };
+
+        const info = await sendEmail(emailOpts);
+        
+        console.log(`[API Email] ✓ Email enviado com sucesso para ${para}`);
+        
+        res.json({
+            ok: true,
+            mensagem: 'Email enviado com sucesso',
+            para: para,
+            assunto: assunto,
+            data: new Date().toISOString(),
+            info: info,
+        });
+    } catch (erro) {
+        console.error(`[API Email] ✗ Erro ao enviar email: ${erro.message}`);
+        res.status(500).json({
+            ok: false,
+            erro: `Não foi possível enviar o email: ${erro.message}`,
+        });
+    }
+});
+
 // ------------------------------------------------------------
 // Estáticos & arranque
 // ------------------------------------------------------------

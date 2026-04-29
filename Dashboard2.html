@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard - MARA & LÚ</title>
+        <!-- Comentário: 
+                Dashboard2.html
+                Página administrativa principal (painel) que mostra métricas sumarizadas,
+                lista breve de inscrições recentes e permite ações administrativas.
+
+                Integrações importantes desta página:
+                - Lê 'inscricoes' do localStorage para preencher métricas e tabela
+                - Mostra notificações in-app (lista em localStorage 'notifications')
+                - Possui modal de Broadcast que chama o endpoint /send-email-batch do servidor
+                    local (conforme README_EMAIL.md). Configure o servidor se quiser envio real.
+
+                Observação de segurança: esta implementação usa armazenamento local e
+                endpoints locais para demonstração; em ambiente real, toda lógica de envio
+                e autenticação deve ser feita via backend seguro.
+        -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/auth-guard.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="css/Dashboard2.css">
+</head>
+<body class="">
+    <aside class="sidebar">
+        <div class="p-6 border-b flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold">L</div>
+            <span class="text-xl font-bold text-gray-800">Mara & Lú</span>
+        </div>
+        <nav class="p-4 flex-1 space-y-1">
+            <a href="Dashboard2.html" class="nav-item active"><span class="flex items-center gap-3"><i class="fas fa-home"></i> Dashboard</span></a>
+            <div>
+                <button onclick="toggleMenu('m1', 'i1')" class="nav-item w-full">
+                    <span class="flex items-center gap-3"><i class="fas fa-briefcase"></i> Inscrições e Matrículas</span>
+                    <i id="i1" class="fas fa-chevron-down text-xs rotate-icon"></i>
+                </button>
+                <div id="m1" class="submenu">
+                    <a href="lista-inscricoes.html" class="block py-2 text-sm hover:text-purple-600">Candidaturas Pendentes</a>
+                    <a href="aprovados.html" class="block py-2 text-sm hover:text-purple-600">Aprovados</a>
+                    <a href="todas-inscricoes.html" class="block py-2 text-sm hover:text-purple-600">Todas as Inscrições</a>
+                </div>
+            </div>
+            <div>
+                <button onclick="toggleMenu('m2', 'i2')" class="nav-item w-full">
+                    <span class="flex items-center gap-3"><i class="fas fa-book"></i> Gestão Acadêmica</span>
+                    <i id="i2" class="fas fa-chevron-down text-xs rotate-icon"></i>
+                </button>
+                <div id="m2" class="submenu">
+                    <a href="cursos-admin.html" class="block py-2 text-sm hover:text-purple-600">Cursos</a>
+                    <a href="vagas.html" class="block py-2 text-sm hover:text-purple-600">Gestão de Vagas</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="header-admin">
+            <div class="flex items-center gap-4">
+                
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fas fa-graduation-cap"></i></div>
+                    <span class="font-bold">Mara & Lú</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="live-indicator"><span class="dot"></span> Ao vivo</div>
+                <div style="position:relative">
+                    <button onclick="openNotifications()" style="background:transparent;border:none;color:white;cursor:pointer;font-size:18px;" title="Notificações">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <span id="notif-count" style="display:none;position:absolute;right:-8px;top:-8px;background:#ef4444;color:white;border-radius:999px;padding:2px 7px;font-size:11px;font-weight:700;">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-padding">
+            <div class="flex items-center gap-4 mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+                <nav class="text-sm text-gray-400">
+                    <i class="fas fa-home"></i> Página Inicial > <span class="text-gray-600">Dashboard</span>
+                </nav>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card purple">
+                    <div>
+                        <h3>Total de Inscrições</h3>
+                        <div class="value" id="total-inscricoes">0</div>
+                        <p class="text-xs opacity-80">Todas as inscrições</p>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="progress-inscricoes" style="width: 0%"></div></div>
+                    <div class="footer-text"><span>Inscrições Pendentes</span> <span id="total-pendentes">0</span></div>
+                </div>
+                <div class="stat-card indigo">
+                    <div>
+                        <h3>Inscrições Aprovadas</h3>
+                        <div class="value" id="total-aprovadas">0</div>
+                        <p class="text-xs opacity-80">Aguardando pagamento</p>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="progress-aprovadas" style="width: 0%"></div></div>
+                    <div class="footer-text"><span>Taxa de Aprovação</span> <span id="taxa-aprovacao">0%</span></div>
+                </div>
+                <div class="stat-card rose">
+                    <div>
+                        <h3>Pagamentos Confirmados</h3>
+                        <div class="value" id="total-pagamentos">0</div>
+                        <p class="text-xs opacity-80">Prontos para matrícula</p>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="progress-pagamentos" style="width: 0%"></div></div>
+                    <div class="footer-text"><span>Taxa de Conversão</span> <span id="taxa-conversao">0%</span></div>
+                </div>
+                <div class="stat-card blue">
+                    <div>
+                        <h3>Alunos Matriculados</h3>
+                        <div class="value" id="total-matriculados">0</div>
+                        <p class="text-xs opacity-80">Total de matrículas</p>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="progress-matriculados" style="width: 0%"></div></div>
+                    <div class="footer-text"><span>Cursos Disponíveis</span> <span id="cursos-ativos">3</span></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 table-container">
+                    <h3 class="font-bold text-lg mb-6">Inscrições Recentes</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Candidato</th>
+                                <th>Classe</th>
+                                <th>Telefone</th>
+                                <th>Email</th>
+                                <th>Idade</th>
+                                <th>Data</th>
+                                <th style="text-align: right;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-inscricoes-corpo" class="text-sm">
+                            <!-- Comentário:  Inscrições serão carregadas aqui via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h3 class="font-bold text-lg mb-6">Cursos Populares</h3>
+                    <div class="space-y-4" id="lista-cursos-populares">
+                        <!-- Comentário:  Cursos serão carregados aqui via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="settings-btn" onclick="openSettingsModal()" class="fixed right-0 top-1/2 -translate-y-1/2 bg-gray-800 text-white p-3 rounded-l-md shadow-lg">
+            <i class="fas fa-cog gear-spin"></i>
+        </button>
+        <!-- =====================================================================
+             Modal de Configurações (roda dentada)
+             - Removido: botão "Enviar Broadcast" (solicitado pelo utilizador)
+             - Acções disponíveis: ir para o site público, terminar sessão
+        ====================================================================== -->
+        <div id="modal-config" onclick="if(event.target===this) closeSettingsModal()">
+            <div class="modal-config-card" role="dialog" aria-modal="true" aria-labelledby="modal-config-title">
+                <!-- Cabeçalho -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4C1D95,#7c3aed);display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-cog" style="color:white;font-size:15px;"></i>
+                        </div>
+                        <div>
+                            <h4 id="modal-config-title" style="margin:0;font-size:1.05rem;font-weight:700;color:#1e0a4a;">Configurações</h4>
+                            <p style="margin:0;font-size:0.78rem;color:#9ca3af;">Área administrativa</p>
+                        </div>
+                    </div>
+                    <button class="modal-close-btn" onclick="closeSettingsModal()" aria-label="Fechar">&times;</button>
+                </div>
+
+                <div style="height:1px;background:#f0eeff;margin:14px 0 18px;"></div>
+
+                <!-- Lista de acções -->
+                <div class="modal-config-actions-list">
+                    <!-- Ir para o site público -->
+                    <button class="config-action-btn btn-site" onclick="goToIndex()">
+                        <span class="btn-ico"><i class="fas fa-globe"></i></span>
+                        <span>
+                            <strong>Ver site público</strong>
+                            <div style="font-size:0.75rem;color:#6b7280;font-weight:400;">Abrir a página principal do colégio</div>
+                        </span>
+                    </button>
+                    <!-- Terminar sessão -->
+                    <button class="config-action-btn btn-logout" onclick="terminarSessao()">
+                        <span class="btn-ico"><i class="fas fa-sign-out-alt"></i></span>
+                        <span>
+                            <strong>Terminar sessão</strong>
+                            <div style="font-size:0.75rem;color:#f87171;font-weight:400;">Sair da área administrativa</div>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Rodapé com versão -->
+                <div style="margin-top:20px;padding-top:12px;border-top:1px solid #f0eeff;text-align:center;">
+                    <span style="font-size:0.72rem;color:#c4b5fd;">Colégio Mara &amp; Lú &bull; Painel Administrativo v1.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================================
+             Modal de Notificações - Estilizado
+        ====================================================================== -->
+        <div id="modal-notifs" onclick="if(event.target===this) closeNotifs()">
+            <div class="notif-card" role="dialog" aria-modal="true">
+                <div class="notif-header">
+                    <strong>
+                        <i class="fas fa-bell"></i>
+                        Notificações
+                        <span id="notif-nao-lidas-label" style="font-size:0.72rem;background:rgba(255,255,255,0.2);border-radius:999px;padding:2px 8px;font-weight:600;"></span>
+                    </strong>
+                    <button onclick="closeNotifs()" style="background:rgba(255,255,255,0.15);border:none;color:white;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;">&times;</button>
+                </div>
+                <div class="notif-body" id="modal-notifs-list">
+                    <div style="padding:36px;text-align:center;color:#9ca3af;">
+                        <i class="fas fa-bell-slash" style="font-size:32px;margin-bottom:10px;display:block;opacity:0.4;"></i>
+                        Sem notificações
+                    </div>
+                </div>
+                <div class="notif-footer">
+                    <span id="notif-total-label" style="font-size:0.78rem;color:#9ca3af;"></span>
+                    <button onclick="marcarTodasLidas()" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 14px;font-size:0.8rem;color:#6b7280;cursor:pointer;">
+                        <i class="fas fa-check-double"></i> Marcar como lidas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Container global de toasts (aparece no canto inferior direito) -->
+    <div id="toast-container"></div>
+
+    <script>
+        function toggleMenu(id, iconId) {
+            document.getElementById(id).classList.toggle('open');
+            document.getElementById(iconId).classList.toggle('active');
+        }
+
+        // ===== Modal de configurações (roda dentada) =====
+        function openSettingsModal(){
+            const m = document.getElementById('modal-config');
+            if(m) m.style.display = 'flex';
+        }
+        function closeSettingsModal(){
+            const m = document.getElementById('modal-config');
+            if(m) m.style.display = 'none';
+        }
+        function terminarSessao(){
+            // Remove apenas a sessão activa, preservando os dados persistidos
+            // (inscrições, cursos, vagas) no localStorage.
+            try { sessionStorage.removeItem('sessao_ativa'); } catch(_) {}
+            window.location.href = 'entrar.html';
+        }
+        function goToIndex(){ window.location.href = 'index.html'; }
+
+        // ============================================================
+        // SISTEMA DE NOTIFICAÇÕES EM TEMPO REAL
+        // ------------------------------------------------------------
+        // Polling da API SQLite a cada 10 segundos.
+        // Quando chegam novas inscrições, mostra um toast animado e
+        // actualiza o badge do sino com o número de não lidas.
+        // As notificações são guardadas em localStorage para persistir
+        // entre recarregamentos da página.
+        // ============================================================
+
+        // Chave do localStorage que regista IDs de inscrições já vistos
+        const NOTIF_KEY    = 'notifications';
+        const SEEN_KEY     = 'notif_seen_ids';   // IDs já processados como notificação
+        const READ_KEY     = 'notif_read_ids';   // IDs lidos pelo admin
+
+        // --- Utilitário: tempo relativo ---
+        function tempoRelativo(isoOuMs) {
+            const diff = Date.now() - new Date(isoOuMs).getTime();
+            const seg = Math.floor(diff / 1000);
+            if (seg < 60)   return 'agora mesmo';
+            const min = Math.floor(seg / 60);
+            if (min < 60)   return `há ${min} min`;
+            const h = Math.floor(min / 60);
+            if (h < 24)     return `há ${h}h`;
+            const d = Math.floor(h / 24);
+            return `há ${d} dia${d > 1 ? 's' : ''}`;
+        }
+
+        // --- Toast emergente ---
+        function mostrarToast(tipo, titulo, mensagem, duracao) {
+            const icones = { success:'check-circle', info:'info-circle', error:'times-circle', warning:'exclamation-triangle' };
+            const ic = icones[tipo] || 'info-circle';
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = `toast ${tipo}`;
+            el.innerHTML = `
+                <i class="fas fa-${ic} toast-icon"></i>
+                <div style="flex:1;">
+                    <div class="toast-title">${titulo}</div>
+                    ${mensagem ? `<div class="toast-msg">${mensagem}</div>` : ''}
+                </div>
+                <button class="toast-close" onclick="fecharToast(this.parentElement)">&times;</button>
+            `;
+            container.appendChild(el);
+            // Auto-remover após duração
+            const t = setTimeout(() => fecharToast(el), duracao || 5000);
+            el._timeout = t;
+        }
+        function fecharToast(el) {
+            if (!el || el._saindo) return;
+            el._saindo = true;
+            clearTimeout(el._timeout);
+            el.classList.add('saindo');
+            setTimeout(() => el.remove(), 320);
+        }
+
+        // --- Badge do sino ---
+        function actualizarBadge(count) {
+            const badge = document.getElementById('notif-count');
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline-block';
+                badge.classList.add('badge-pulse');
+            } else {
+                badge.style.display = 'none';
+                badge.classList.remove('badge-pulse');
+            }
+        }
+
+        // --- Abrir modal de notificações ---
+        function openNotifications() {
+            const arr   = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+            const lidos = JSON.parse(localStorage.getItem(READ_KEY)  || '[]');
+            const list  = document.getElementById('modal-notifs-list');
+            const label = document.getElementById('notif-total-label');
+            const naoLidasLabel = document.getElementById('notif-nao-lidas-label');
+            const naoLidas = arr.filter(n => !lidos.includes(n.id)).length;
+
+            if (naoLidasLabel) naoLidasLabel.textContent = naoLidas > 0 ? `${naoLidas} nova${naoLidas>1?'s':''}` : '';
+
+            if (arr.length === 0) {
+                list.innerHTML = `<div style="padding:40px;text-align:center;color:#9ca3af;">
+                    <i class="fas fa-bell-slash" style="font-size:34px;margin-bottom:12px;display:block;opacity:0.35;"></i>
+                    <div style="font-weight:600;color:#6b7280;">Tudo em dia!</div>
+                    <div style="font-size:0.82rem;margin-top:4px;">Sem notificações por agora.</div>
+                </div>`;
+            } else {
+                list.innerHTML = arr.map(n => {
+                    const tipo = n.type || 'info';
+                    const lida = lidos.includes(n.id);
+                    return `<div class="notif-item${lida ? '' : ' nao-lida'}">
+                        <span class="notif-dot ${tipo}"></span>
+                        <div style="flex:1;min-width:0;">
+                            <div class="notif-item-msg">${n.message}</div>
+                            ${n.sub ? `<div class="notif-item-sub">${n.sub}</div>` : ''}
+                            <div class="notif-item-date">${tempoRelativo(n.date)}</div>
+                        </div>
+                        ${!lida ? '<span style="width:7px;height:7px;border-radius:50%;background:#7c3aed;flex-shrink:0;margin-top:6px;"></span>' : ''}
+                    </div>`;
+                }).join('');
+            }
+
+            if (label) label.textContent = arr.length > 0 ? `${arr.length} notificação${arr.length > 1 ? 'ões' : ''}` : '';
+            document.getElementById('modal-notifs').style.display = 'flex';
+
+            // Marcar como lidas após 1.5s de visualização
+            setTimeout(marcarTodasLidas, 1500);
+        }
+
+        function closeNotifs() {
+            document.getElementById('modal-notifs').style.display = 'none';
+        }
+
+        function marcarTodasLidas() {
+            const arr  = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+            const ids  = arr.map(n => n.id);
+            localStorage.setItem(READ_KEY, JSON.stringify(ids));
+            actualizarBadge(0);
+            // Actualizar label de não lidas se o modal estiver aberto
+            const lbl = document.getElementById('notif-nao-lidas-label');
+            if (lbl) lbl.textContent = '';
+            if (typeof AdminCore !== 'undefined') AdminCore.marcarTodasLidas?.();
+        }
+
+        // --- Adicionar notificação ao histórico ---
+        function adicionarNotificacao(tipo, message, sub) {
+            const arr = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+            const id  = 'n_' + Date.now();
+            arr.unshift({ id, type: tipo, message, sub: sub || '', date: new Date().toISOString() });
+            // Manter apenas as 50 mais recentes
+            localStorage.setItem(NOTIF_KEY, JSON.stringify(arr.slice(0, 50)));
+            return id;
+        }
+
+        // --- Polling da API (a cada 10 segundos) ---
+        let _ultimoTotalApi = null;
+
+        async function verificarNovasInscricoes() {
+            try {
+                const resp = await fetch('/api/inscricoes');
+                if (!resp.ok) return;
+                const inscricoes = await resp.json();
+                const total = inscricoes.length;
+
+                // Primeira execução: apenas registar o total sem notificar
+                if (_ultimoTotalApi === null) {
+                    _ultimoTotalApi = total;
+                    // Verificar inscrições novas desde o último carregamento (IDs não vistos)
+                    const seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+                    const novas = inscricoes.filter(i => !seen.includes(i.id));
+                    if (novas.length > 0) {
+                        novas.forEach(i => {
+                            adicionarNotificacao('success',
+                                `Nova inscrição: ${i.nomeCompleto || 'Candidato'}`,
+                                `${i.classe ? i.classe + 'ª Classe' : ''} · ${i.periodo || ''} · ${i.id}`
+                            );
+                        });
+                        // Marcar todos como vistos
+                        localStorage.setItem(SEEN_KEY, JSON.stringify(inscricoes.map(i => i.id)));
+                        const naoLidas = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]')
+                            .filter(n => !JSON.parse(localStorage.getItem(READ_KEY) || '[]').includes(n.id)).length;
+                        actualizarBadge(naoLidas);
+                    } else {
+                        localStorage.setItem(SEEN_KEY, JSON.stringify(inscricoes.map(i => i.id)));
+                        const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+                        const lidos  = JSON.parse(localStorage.getItem(READ_KEY)  || '[]');
+                        actualizarBadge(notifs.filter(n => !lidos.includes(n.id)).length);
+                    }
+                    // Actualizar dashboard com dados reais da API
+                    actualizarDashboardComApi(inscricoes);
+                    return;
+                }
+
+                // Execuções seguintes: detectar novas inscrições em tempo real
+                const seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+                const novas = inscricoes.filter(i => !seen.includes(i.id));
+
+                if (novas.length > 0) {
+                    novas.forEach(i => {
+                        // Toast emergente
+                        mostrarToast('success',
+                            `Nova inscrição recebida!`,
+                            `${i.nomeCompleto || 'Candidato'} — ${i.id}`
+                        );
+                        // Adicionar ao histórico de notificações
+                        adicionarNotificacao('success',
+                            `Nova inscrição: ${i.nomeCompleto || 'Candidato'}`,
+                            `${i.classe ? i.classe + 'ª Classe' : ''} · ${i.periodo || ''} · ${i.id}`
+                        );
+                    });
+                    // Actualizar lista de IDs vistos
+                    localStorage.setItem(SEEN_KEY, JSON.stringify(inscricoes.map(i => i.id)));
+
+                    const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+                    const lidos  = JSON.parse(localStorage.getItem(READ_KEY)  || '[]');
+                    actualizarBadge(notifs.filter(n => !lidos.includes(n.id)).length);
+
+                    // Actualizar os contadores do dashboard
+                    actualizarDashboardComApi(inscricoes);
+                }
+                _ultimoTotalApi = total;
+            } catch (e) {
+                // Sem acesso à API — funcionar normalmente com localStorage
+            }
+        }
+
+        // Actualiza os contadores do dashboard com dados vindos da API
+        function actualizarDashboardComApi(inscricoes) {
+            const total     = inscricoes.length;
+            const pendentes = inscricoes.filter(i => i.estado === 'Pendente').length;
+            const aprovadas = inscricoes.filter(i => i.estado === 'Aprovado').length;
+            // Pagamentos confirmados — independem do estado da inscrição
+            const pagamentos = inscricoes.filter(i => i.pagamento && i.pagamento.estado === 'Pago').length;
+
+            const elTotal = document.getElementById('total-inscricoes');
+            const elPend  = document.getElementById('total-pendentes');
+            const elAprov = document.getElementById('total-aprovadas');
+            const elPag   = document.getElementById('total-pagamentos');
+            if (elTotal) elTotal.textContent = total;
+            if (elPend)  elPend.textContent  = pendentes;
+            if (elAprov) elAprov.textContent = aprovadas;
+            if (elPag)   elPag.textContent   = pagamentos;
+
+            if (total > 0) {
+                const prog = document.getElementById('progress-aprovadas');
+                const taxa = document.getElementById('taxa-aprovacao');
+                if (prog) prog.style.width = ((aprovadas / total) * 100) + '%';
+                if (taxa) taxa.textContent  = Math.round((aprovadas / total) * 100) + '%';
+            }
+            // Barra/Taxa de Conversão = pagamentos confirmados / aprovadas
+            if (aprovadas > 0) {
+                const progPag = document.getElementById('progress-pagamentos');
+                const taxaConv = document.getElementById('taxa-conversao');
+                const pct = Math.round((pagamentos / aprovadas) * 100);
+                if (progPag) progPag.style.width = pct + '%';
+                if (taxaConv) taxaConv.textContent = pct + '%';
+            }
+        }
+
+        // Função para carregar dados do LocalStorage
+        function carregarDadosDashboard() {
+            const inscricoes = JSON.parse(localStorage.getItem('inscricoes') || '[]');
+            
+            // Atualizar contadores
+            const total = inscricoes.length;
+            const pendentes = inscricoes.filter(i => i.estado === 'Pendente').length;
+            const aprovadas = inscricoes.filter(i => i.estado === 'Aprovado').length;
+            // Pagamentos confirmados — verificados via i.pagamento.estado
+            const pagamentos = inscricoes.filter(i => i.pagamento && i.pagamento.estado === 'Pago').length;
+
+            document.getElementById('total-inscricoes').textContent = total;
+            document.getElementById('total-pendentes').textContent = pendentes;
+            document.getElementById('total-aprovadas').textContent = aprovadas;
+            const elPagDash = document.getElementById('total-pagamentos');
+            if (elPagDash) elPagDash.textContent = pagamentos;
+
+            // Barras de progresso simples
+            if (total > 0) {
+                document.getElementById('progress-inscricoes').style.width = '100%';
+                document.getElementById('progress-aprovadas').style.width = ((aprovadas / total) * 100) + '%';
+                document.getElementById('taxa-aprovacao').textContent = Math.round((aprovadas / total) * 100) + '%';
+            }
+            // Taxa de Conversão = % de aprovados que já pagaram
+            if (aprovadas > 0) {
+                const pct = Math.round((pagamentos / aprovadas) * 100);
+                const progPag = document.getElementById('progress-pagamentos');
+                const taxaConv = document.getElementById('taxa-conversao');
+                if (progPag) progPag.style.width = pct + '%';
+                if (taxaConv) taxaConv.textContent = pct + '%';
+            }
+
+            // Carregar Tabela de Inscrições Recentes (últimas 5)
+            const corpoTabela = document.getElementById('lista-inscricoes-corpo');
+            corpoTabela.innerHTML = '';
+
+            if (inscricoes.length === 0) {
+                corpoTabela.innerHTML = '<tr><td colspan="8" class="py-8 text-center text-gray-400 italic">Nenhuma inscrição encontrada</td></tr>';
+            } else {
+                function calcIdadeDash(dataNasc) {
+                    if (!dataNasc) return 'N/D';
+                    const hoje = new Date(); const nasc = new Date(dataNasc);
+                    let i = hoje.getFullYear() - nasc.getFullYear();
+                    const m = hoje.getMonth() - nasc.getMonth();
+                    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) i--;
+                    return isNaN(i) ? 'N/D' : i + ' a.';
+                }
+                inscricoes.slice(0, 5).forEach(insc => {
+                    const idadeExib = insc.idade != null ? insc.idade + ' a.' : calcIdadeDash(insc.dataNascimento);
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50 transition';
+                    tr.innerHTML = `
+                        <td class="py-3 font-mono text-xs text-purple-600 font-bold">${insc.id}</td>
+                        <td class="py-3 font-medium">${insc.nomeCompleto}</td>
+                        <td class="py-3 text-gray-500">${insc.classe || 'N/D'}</td>
+                        <td class="py-3 text-gray-500">${insc.telefone || 'N/D'}</td>
+                        <td class="py-3 text-gray-500">${insc.email || 'N/D'}</td>
+                        <td class="py-3 text-gray-500">${idadeExib}</td>
+                        <td class="py-3 text-gray-400">${insc.dataInscricao}</td>
+                        <td class="py-3 text-right">
+                            <span class="badge ${
+                                insc.estado === 'Pendente' ? 'badge-pending' : 
+                                insc.estado === 'Aprovado' ? 'badge-approved' : 
+                                'bg-red-100 text-red-700'
+                            }">${insc.estado}</span>
+                        </td>
+                    `;
+                    corpoTabela.appendChild(tr);
+                });
+            }
+
+            // Atualizar Cursos Populares
+            const cursosContagem = {};
+            inscricoes.forEach(insc => {
+                const curso = insc.cursoLabel || insc.curso;
+                cursosContagem[curso] = (cursosContagem[curso] || 0) + 1;
+            });
+
+            const cursosPopularesLista = document.getElementById('lista-cursos-populares');
+            cursosPopularesLista.innerHTML = '';
+            
+            const cursosSorted = Object.entries(cursosContagem).sort((a, b) => b[1] - a[1]);
+            
+            if (cursosSorted.length === 0) {
+                cursosPopularesLista.innerHTML = '<p class="text-sm text-gray-400 italic">Sem dados de cursos</p>';
+            } else {
+                cursosSorted.slice(0, 4).forEach(([nome, qtd]) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center text-sm';
+                    div.innerHTML = `
+                        <span class="text-gray-600">${nome}</span>
+                        <span class="bg-green-600 text-white w-6 h-6 flex items-center justify-center rounded font-bold text-xs">${qtd}</span>
+                    `;
+                    cursosPopularesLista.appendChild(div);
+                });
+            }
+            // O badge de notificações é actualizado pelo sistema de polling em tempo real
+        }
+
+        // Carregar ao iniciar e iniciar polling em tempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDadosDashboard();
+            if (typeof AdminCore !== 'undefined') AdminCore.iniciarMonitor?.();
+
+            // Primeiro polling imediato, depois a cada 10 segundos
+            verificarNovasInscricoes();
+            setInterval(verificarNovasInscricoes, 10000);
+        });
+    </script>
+    <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

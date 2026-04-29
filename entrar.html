@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!-- Comentário:
+  Arquivo: entrar.html
+  Propósito: Formulário de autenticação do administrador.
+
+  Autenticação (frontend, sem servidor):
+  - As credenciais (`ADMIN` / `admin123`) são validadas no próprio cliente.
+  - Em caso de sucesso, é guardada uma sessão em `sessionStorage`
+    (`sessao_ativa`), que termina automaticamente ao fechar o separador.
+  - Todas as páginas administrativas usam `js/auth-guard.js`, que apenas
+    verifica essa sessão antes de permitir acesso.
+-->
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MARA E LU - Entre na sua conta">
+  <title>Entrar - MARA E LU </title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <!-- Comentário:  Left Side - Image with Blue Overlay -->
+    <div class="login-image-side">
+      <img src="images/hero-bg.jpg" alt="MARA & LU" class="login-bg-image">
+      <div class="login-image-overlay"></div>
+      <div class="login-brand">
+        <img src="images/logo-mara-lu.png" alt="MARA e LU" class="login-logo-image">
+        <h1 class="login-brand-name">MARA e LU</h1>
+      </div>
+    </div>
+
+    <!-- Comentário:  Right Side - Login Form -->
+    <div class="login-form-side">
+      <div class="login-form-container">
+        <div class="login-form-header">
+          <div class="login-header-bar"></div>
+          <div class="login-header-text">
+            <span class="login-title-bold">Entrar na sua</span>
+            <span class="login-title-light">conta</span>
+          </div>
+        </div>
+
+        <form id="login-form" class="login-form">
+          <div class="login-form-group">
+            <label for="usuario" class="login-label">Usuario</label>
+            <input type="text" id="usuario" name="usuario" class="login-input" required>
+          </div>
+
+          <div class="login-form-group">
+            <label for="senha" class="login-label">Palavra-passe</label>
+            <input type="password" id="senha" name="senha" class="login-input" required>
+          </div>
+
+          <!-- Comentário: Mensagem de erro de login -->
+          <div id="login-erro" style="display:none; background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:8px; padding:10px 14px; font-size:0.9rem; margin-bottom:8px;">
+            Utilizador ou palavra-passe incorrectos. Tente novamente.
+          </div>
+          <button type="submit" class="btn btn-accent login-btn">Entrar</button>
+        </form>
+
+        <a href="index.html" class="login-back" style="margin-top:20px; display:flex; align-items:center; gap:6px; color:#4C1D95; font-weight:600; text-decoration:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar ao site principal
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Autenticação local (frontend): credenciais hardcoded ADMIN/admin123
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const usuario = document.getElementById('usuario').value.trim().toUpperCase();
+      const senha   = document.getElementById('senha').value;
+      const erro    = document.getElementById('login-erro');
+
+      const credenciaisValidas = [
+        { usuario: 'ADMIN', senha: 'admin123' }
+      ];
+      const valido = credenciaisValidas.some(c => c.usuario === usuario && c.senha === senha);
+
+      if (valido) {
+        sessionStorage.setItem('sessao_ativa', JSON.stringify({
+          usuario,
+          nome: 'Administrador',
+          role: 'admin',
+          inicio: new Date().toISOString()
+        }));
+        erro.style.display = 'none';
+        window.location.href = 'Dashboard2.html';
+      } else {
+        erro.textContent = 'Utilizador ou palavra-passe incorrectos. Tente novamente.';
+        erro.style.display = 'block';
+        document.getElementById('senha').value = '';
+        document.getElementById('senha').focus();
+      }
+    });
+  </script>
+    <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

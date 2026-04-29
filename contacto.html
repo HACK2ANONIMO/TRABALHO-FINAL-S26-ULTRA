@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Entre em contato conosco. Estamos aqui para responder suas perguntas.">
+  <title>Contacto - MARA & LU</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/contacto.css">
+</head>
+<body>
+    <!-- Comentário: Início do corpo da página -->
+  <!-- Comentário:  Top Header -->
+  <header class="top-header">
+    <a href="entrar.html">Entrar</a>
+    <span>|</span>
+    <a href="desenvolvedores.html">Desenvolvedores</a>
+  </header>
+
+  <!-- Comentário:  Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="images/logo-mara-lu.png" alt="MARA E LU Logo">
+      <span>Mara & Lú</span>
+    </a>
+
+    <div class="navbar-content">
+      <div class="nav-links">
+        <a href="index.html">INÍCIO</a>
+        <a href="sobre.html">SOBRE</a>
+        <a href="cursos.html">NOSSOS CURSOS</a>
+        <a href="contacto.html">CONTACTO</a>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <a href="inscrever-se.html" class="btn btn-accent">Inscrever-se</a>
+      <a href="consultar-inscricao.html" class="btn btn-secondary">Consultar Inscrição</a>
+    </div>
+
+    <button class="mobile-menu-btn" aria-label="Menu">
+      <span>☰</span>
+    </button>
+  </div>
+
+  <!-- Comentário:  Mobile Navigation -->
+  <div class="mobile-nav">
+    <a href="index.html">INÍCIO</a>
+    <a href="sobre.html">SOBRE</a>
+    <a href="cursos.html">CURSOS</a>
+    <a href="contacto.html">CONTACTO</a>
+  </div>
+  </nav>
+
+  <!-- Comentário:  Contact Header -->
+  <section class="contact-header">
+    <div class="contact-header-bg"></div>
+    <h1>Fale com a gente</h1>
+  </section>
+
+  <!-- Comentário:  Contact Content -->
+  <section class="contact-content">
+    <div class="contact-container">
+      <div class="contact-grid">
+        <!-- Comentário:  Contact Info -->
+        <div class="contact-info">
+          <h2>Nossos <span>Contatos</span></h2>
+
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <p class="contact-info-label">Localização</p>
+              <p class="contact-info-value">ANGOLA - Província de Luanda, Cassenda - RUA 13</p>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773c.416 1.074.989 2.113 1.717 3.08.727.967 1.618 1.878 2.65 2.685l1.012-1.297a1 1 0 011.3-.083l3.71 2.847a1 1 0 01.083 1.3l-1.71 2.224a1 1 0 01-.9.267c-5.107-.666-9.313-4.87-9.98-9.977a1 1 0 01.267-.9l2.224-1.71z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="contact-info-label">Telefone</p>
+              <p class="contact-info-value">+244 930 768 386 (atendimento das 08h às 16h)</p>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="contact-info-label">Email</p>
+              <p class="contact-info-value">complex.maraelu@gmail.com</p>
+            </div>
+          </div>
+
+          <p class="contact-info-note">Responderemos à sua mensagem em até 24 horas úteis.</p>
+        </div>
+
+        <!-- Comentário:  Contact Form -->
+        <div class="contact-form-container">
+          <div class="form-header">
+            <div class="form-header-bar"></div>
+            <h2>Envie a sua mensagem</h2>
+          </div>
+
+          <!-- Formulário de contacto: envia para a API interna /api/contacto.
+               O servidor envia email à escola e também uma confirmação automática
+               para o remetente, usando Replit Mail (não precisa de SMTP). -->
+          <form id="contact-form" novalidate>
+            <!-- Honeypot para evitar spam -->
+            <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+
+            <div class="form-row">
+              <input type="text"  name="nome"  placeholder="Seu nome"   class="form-input" required>
+              <input type="email" name="email" placeholder="Seu e-mail" class="form-input" required>
+            </div>
+
+            <div class="form-row">
+              <input type="tel"  name="telefone" placeholder="Telefone (ex: 9XX XXX XXX)" class="form-input">
+              <input type="text" name="assunto"  placeholder="Assunto" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <textarea name="mensagem" placeholder="Escreva sua mensagem" class="form-textarea" rows="6" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-accent btn-full">Enviar Mensagem</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sistema de Pop-ups Estilizados para o formulário de contacto -->
+
+  <div id="popup-overlay">
+    <div id="popup-card">
+      <div id="popup-icon"><i class="fas fa-paper-plane"></i></div>
+      <h3 id="popup-titulo">Mensagem enviada!</h3>
+      <p id="popup-mensagem">A sua mensagem foi enviada com sucesso. Responderemos em até 24 horas úteis.</p>
+      <button id="popup-btn" onclick="document.getElementById('popup-overlay').style.display='none'">OK</button>
+    </div>
+  </div>
+  <script>
+    function abrirPopup(titulo, msg, isErro) {
+      document.getElementById('popup-titulo').textContent = titulo;
+      document.getElementById('popup-mensagem').textContent = msg;
+      const card = document.getElementById('popup-card');
+      const icon = document.getElementById('popup-icon');
+      if (isErro) {
+        icon.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#dc2626;"></i>';
+        card.style.borderTop = '4px solid #dc2626';
+      } else {
+        icon.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        card.style.borderTop = '';
+      }
+      document.getElementById('popup-overlay').style.display = 'flex';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const contactForm = document.getElementById('contact-form');
+      if (!contactForm) return;
+
+      contactForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Honeypot anti-spam — se preenchido, simula sucesso silencioso
+        const honey = contactForm.querySelector('input[name="_honey"]');
+        if (honey && honey.value) {
+          contactForm.reset();
+          return;
+        }
+
+        const dados = {
+          nome:     contactForm.nome.value.trim(),
+          email:    contactForm.email.value.trim(),
+          telefone: contactForm.telefone.value.trim(),
+          assunto:  contactForm.assunto.value.trim(),
+          mensagem: contactForm.mensagem.value.trim(),
+        };
+
+        if (!dados.nome || !dados.email || !dados.assunto || !dados.mensagem) {
+          abrirPopup('Campos em falta', 'Preencha nome, email, assunto e mensagem.', true);
+          return;
+        }
+
+        const btn = contactForm.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'A enviar…'; }
+
+        try {
+          const r = await fetch('/api/contacto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok || !j.ok) {
+            throw new Error(j.error || ('Erro HTTP ' + r.status));
+          }
+          abrirPopup(
+            'Mensagem enviada!',
+            'A sua mensagem foi enviada com sucesso. Recebemos uma cópia e enviámos uma confirmação para o seu email.',
+            false
+          );
+          contactForm.reset();
+        } catch (err) {
+          abrirPopup(
+            'Não foi possível enviar',
+            'Ocorreu um erro ao enviar a sua mensagem: ' + (err.message || 'desconhecido') + '. Tente novamente mais tarde ou ligue +244 930 768 386.',
+            true
+          );
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Enviar Mensagem'; }
+        }
+      });
+    });
+  </script>
+
+  <!-- Comentário:  Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>MARA E LU</h3>
+          <p>Formando para transformar vidas através da educação de qualidade.</p>
+        </div>
+
+             <div class="footer-nav">
+            <h4>Navegação</h4>
+            <ul>
+              <li><a href="index.html">Início</a></li>
+              <li><a href="sobre.html">Sobre</a></li>
+              <li><a href="cursos.html">Cursos</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-nav">
+            <h4>Informações</h4>
+            <ul>
+              <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-nav">
+            <h4>Redes Sociais</h4>
+            <div class="social-links">
+              <a href="https://www.facebook.com/DPCleonardo/?locale=pt_BR" aria-label="Facebook">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"
+                  />
+                </svg>
+              </a>
+              <a href="https://www.instagram.com/colegio.mara_e_lu?igsh=eHY2Mml1eWlhcnJs" aria-label="Instagram">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                  />
+                </svg>
+              </a>
+              
+              
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© 2026 MARA E LU. Todos os direitos reservados.</p>
+          <div class="footer-bottom-links">
+            <a href="politica-privacidade.html">Política de Privacidade</a>
+            <a href="termos-servico.html">Termos de Serviço</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+      <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

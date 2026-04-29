@@ -1,0 +1,72 @@
+/* ============================================================
+   css/contacto.css — Popup de confirmação da página de Contacto
+   ------------------------------------------------------------
+   Estiliza o popup que aparece quando o formulário de contacto
+   é submetido com sucesso. O popup é simples (apenas sucesso),
+   ao contrário do popup de inscrição que tem múltiplas variantes.
+   ============================================================ */
+
+
+/* ── OVERLAY (fundo escuro desfocado) ──────────────────────── */
+/* Cobre toda a página. Está escondido por padrão e é mostrado
+   pelo JavaScript após o envio do formulário. */
+#popup-overlay {
+    display: none; /* Ocultado; mostrado via JS ao submeter */
+    position: fixed;
+    inset: 0;
+    background: rgba(10,5,30,0.5);     /* Fundo roxo escuro semi-transparente */
+    -webkit-backdrop-filter: blur(4px); /* Compatibilidade Safari */
+    backdrop-filter: blur(4px);          /* Desfoca o conteúdo de fundo */
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ── CARTÃO DO POPUP ───────────────────────────────────────── */
+/* Caixa branca centrada com cantos arredondados e animação de entrada */
+#popup-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px 28px 24px;
+    width: 420px;
+    max-width: 92%;
+    box-shadow: 0 24px 60px rgba(10,5,40,0.28);
+    text-align: center;
+    animation: popupIn 0.25s cubic-bezier(.16,1,.3,1);
+}
+
+/* Animação de entrada suave (sobe e aparece) */
+@keyframes popupIn {
+    from { transform: translateY(18px) scale(0.96); opacity: 0; }
+    to   { transform: translateY(0) scale(1);       opacity: 1; }
+}
+
+
+/* ── ÍCONE CIRCULAR (sempre verde nesta página) ────────────── */
+#popup-icon {
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 26px;
+    background: #dcfce7; /* Verde claro */
+    color: #16a34a;       /* Verde escuro */
+}
+
+
+/* ── TEXTOS DO POPUP ───────────────────────────────────────── */
+#popup-titulo    { font-size: 1.15rem; font-weight: 700; color: #111827; margin: 0 0 8px; }
+#popup-mensagem  { font-size: 0.9rem; color: #4b5563; line-height: 1.5; margin: 0 0 22px; }
+
+
+/* ── BOTÃO OK ──────────────────────────────────────────────── */
+#popup-btn {
+    background: linear-gradient(135deg, #4C1D95, #7c3aed); /* Gradiente roxo */
+    color: white;
+    border: none;
+    padding: 11px 32px;
+    border-radius: 10px;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer;
+}

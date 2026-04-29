@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<!--
+  Ficheiro: pagamento.html
+  Propósito: Simulação do pagamento da taxa de inscrição do Colégio
+             Mara & Lú. Está integrada com a área administrativa: ao
+             confirmar o pagamento, o estado é gravado no objecto
+             "pagamento" da inscrição (via PATCH /api/inscricoes/:id),
+             ficando imediatamente visível no painel admin
+             (lista-inscricoes.html, aprovados.html, todas-inscricoes.html
+             e Dashboard2.html).
+
+  Tecnologia: HTML5 + CSS3 + JavaScript Vanilla (sem frameworks).
+  Métodos simulados: Multicaixa Express, Cartão Visa/Mastercard,
+                     Referência Multicaixa.
+-->
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pagamento da taxa de inscrição - Colégio Mara & Lú">
+    <title>Pagamento da Inscrição - MARA E LU</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/pagamento.css">
+</head>
+<body>
+
+    <!-- Cabeçalho público partilhado -->
+    <header class="top-header">
+        <a href="entrar.html">Entrar</a>
+        <span>|</span>
+        <a href="desenvolvedores.html">Desenvolvedores</a>
+    </header>
+
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            <img src="images/logo-mara-lu.png" alt="MARA E LU Logo">
+            <span>Mara &amp; Lú</span>
+        </a>
+        <div class="navbar-content">
+            <div class="nav-links">
+                <a href="index.html">INÍCIO</a>
+                <a href="sobre.html">SOBRE</a>
+                <a href="cursos.html">CURSOS</a>
+                <a href="contacto.html">CONTACTO</a>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <a href="inscrever-se.html" class="btn btn-accent">Inscrever-se</a>
+            <a href="consultar-inscricao.html" class="btn btn-secondary">Consultar Inscrição</a>
+        </div>
+    </nav>
+
+    <!-- Cabeçalho da página -->
+    <section class="pagamento-header">
+        <h1><i class="fas fa-credit-card"></i> Pagamento da Inscrição</h1>
+        <p>Confirme o pagamento da taxa de inscrição para garantir a sua vaga</p>
+    </section>
+
+    <!-- Container principal -->
+    <main class="pagamento-container">
+
+        <!-- ESTADO 1 — Pesquisa por código (quando o utilizador chega
+             à página sem ?codigo=... na URL) -->
+        <div id="bloco-pesquisa" class="pagamento-card">
+            <h2><i class="fas fa-search"></i> Indique o código da inscrição</h2>
+            <p style="color:#6b7280;margin:0 0 16px;font-size:0.92rem;">
+                Introduza o código que recebeu após submeter a inscrição
+                (ex: <strong>INS1A2B3C4D</strong>).
+            </p>
+            <form id="form-pesquisa" class="pesquisa-form">
+                <input type="text" id="codigo-input" placeholder="Código da inscrição"
+                       autocomplete="off" required>
+                <button type="submit"><i class="fas fa-arrow-right"></i> Continuar</button>
+            </form>
+            <div id="erro-pesquisa" style="display:none;color:#dc2626;font-size:0.88rem;margin-top:8px;"></div>
+        </div>
+
+        <!-- ESTADO 2 — Resumo + selecção de método + formulário -->
+        <div id="bloco-pagamento" style="display:none;">
+
+            <!-- Aviso (se já pago, ou se rejeitado) -->
+            <div id="aviso-area"></div>
+
+            <!-- Resumo da inscrição -->
+            <div class="pagamento-card">
+                <h2><i class="fas fa-user-graduate"></i> Resumo da Inscrição</h2>
+                <div class="resumo-inscricao" id="resumo-inscricao"></div>
+                <div class="valor-pagar">
+                    <div>
+                        <div class="label-valor">Valor da Taxa de Inscrição</div>
+                        <div style="font-size:0.78rem;color:#92400e;margin-top:2px;" id="descricao-valor"></div>
+                    </div>
+                    <div class="montante" id="valor-montante">0 <small>Kz</small></div>
+                </div>
+            </div>
+
+            <!-- Selector de método -->
+            <div class="pagamento-card" id="card-metodos">
+                <h2><i class="fas fa-wallet"></i> Escolha o Método de Pagamento</h2>
+                <div class="metodos-grid">
+                    <div class="metodo-card" data-metodo="multicaixa-express" onclick="selecionarMetodo('multicaixa-express')">
+                        <div class="icone"><i class="fas fa-mobile-alt"></i></div>
+                        <h4>Multicaixa Express</h4>
+                        <p>Pagamento por telemóvel (USSD/App)</p>
+                    </div>
+                    <div class="metodo-card" data-metodo="cartao" onclick="selecionarMetodo('cartao')">
+                        <div class="icone"><i class="fas fa-credit-card"></i></div>
+                        <h4>Cartão Bancário</h4>
+                        <p>Visa / Mastercard / Multicaixa</p>
+                    </div>
+                    <div class="metodo-card" data-metodo="referencia" onclick="selecionarMetodo('referencia')">
+                        <div class="icone"><i class="fas fa-receipt"></i></div>
+                        <h4>Referência Multicaixa</h4>
+                        <p>Pagar em qualquer ATM ou Internet Banking</p>
+                    </div>
+                </div>
+
+                <!-- Formulário Multicaixa Express (QR Code) -->
+                <form id="form-multicaixa-express" class="form-metodo" onsubmit="return processarPagamento(event,'multicaixa-express')">
+                    <div class="qr-pagamento">
+                        <div class="qr-titulo">Leia o código QR com a app Multicaixa Express</div>
+                        <div class="qr-imagem-wrap">
+                            <!--
+                              QR Code de pagamento.
+                              - Por omissão é gerado dinamicamente via api.qrserver.com
+                                contendo os dados de pagamento da escola.
+                              - Para usar um QR real fornecido pela escola, basta
+                                substituir por: <img src="images/qr-pagamento.png" ...>
+                            -->
+                            <img id="qr-pagamento-img" alt="Código QR de pagamento"
+                                 src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=Multicaixa%20Express%20%7C%20Col%C3%A9gio%20Mara%20%26%20L%C3%BA%20%7C%20%2B244%20930%20768%20386%20%7C%20Taxa%20de%20Inscri%C3%A7%C3%A3o%205000%20Kz">
+                        </div>
+                        <div class="qr-beneficiario">Colégio Mara &amp; Lú</div>
+                    </div>
+                    <div class="aviso info">
+                        <div class="ico"><i class="fas fa-info"></i></div>
+                        <div>
+                            <b>Como pagar?</b>
+                            Abra a sua app <b>Multicaixa Express</b>, escolha
+                            <b>"Pagar com QR"</b> e aponte a câmara para o código acima.
+                            Confirme o valor de <b>5 000 Kz</b> e indique o
+                            <b>código de inscrição</b> no descritivo.
+                            Quando concluir, prima o botão abaixo.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-pagar">
+                        <i class="fas fa-check-circle"></i> Pago
+                    </button>
+                </form>
+
+                <!-- Formulário Cartão -->
+                <form id="form-cartao" class="form-metodo" onsubmit="return processarPagamento(event,'cartao')">
+                    <div class="form-grupo" style="margin-top:22px;">
+                        <label for="cart-titular">Nome do Titular</label>
+                        <input type="text" id="cart-titular" placeholder="Como aparece no cartão" required>
+                    </div>
+                    <div class="form-grupo">
+                        <label for="cart-numero">Número do Cartão</label>
+                        <input type="text" id="cart-numero" placeholder="0000 0000 0000 0000" maxlength="19" required
+                               oninput="formatarNumeroCartao(this)">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-grupo">
+                            <label for="cart-validade">Validade (MM/AA)</label>
+                            <input type="text" id="cart-validade" placeholder="MM/AA" maxlength="5" required
+                                   oninput="formatarValidade(this)">
+                        </div>
+                        <div class="form-grupo">
+                            <label for="cart-cvv">CVV</label>
+                            <input type="text" id="cart-cvv" placeholder="123" maxlength="4" required pattern="[0-9]{3,4}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-pagar">
+                        <i class="fas fa-lock"></i> Pagar em Segurança
+                    </button>
+                </form>
+
+                <!-- Formulário Referência Multicaixa -->
+                <form id="form-referencia" class="form-metodo" onsubmit="return processarPagamento(event,'referencia')">
+                    <div class="referencia-mcx" style="margin-top:22px;">
+                        <div class="et">Entidade</div>
+                        <div class="num">10495</div>
+                        <div class="et">Referência</div>
+                        <div class="num" id="ref-numero">—</div>
+                        <div class="et">Validade: 48h</div>
+                    </div>
+                    <div class="aviso info">
+                        <div class="ico"><i class="fas fa-info"></i></div>
+                        <div>
+                            <b>Como pagar?</b>
+                            Vá a um ATM ou Internet Banking, escolha "Pagamentos" → "Outros Serviços",
+                            introduza a Entidade e a Referência acima e o valor exacto da taxa.
+                            Para fins desta simulação, prima o botão abaixo para confirmar o pagamento.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-pagar">
+                        <i class="fas fa-check"></i> Já paguei a Referência
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ESTADO 3 — Processamento -->
+        <div id="bloco-processando" class="pagamento-card processando">
+            <div class="spinner"></div>
+            <p id="processando-msg">A processar o pagamento, aguarde...</p>
+        </div>
+
+        <!-- ESTADO 4 — Recibo -->
+        <div id="bloco-recibo" class="pagamento-card recibo">
+            <div class="check-circle"><i class="fas fa-check"></i></div>
+            <h2 style="display:flex;">Pagamento Confirmado!</h2>
+            <p class="sub">A sua taxa de inscrição foi paga com sucesso.</p>
+
+            <div class="recibo-detalhes" id="recibo-detalhes"></div>
+
+            <div class="recibo-acoes">
+                <button class="primary" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Recibo</button>
+                <button onclick="window.location.href='consultar-inscricao.html?codigo='+encodeURIComponent(_inscAtual.id)">
+                    <i class="fas fa-search"></i> Ver Estado da Inscrição
+                </button>
+                <button onclick="window.location.href='index.html'">
+                    <i class="fas fa-home"></i> Página Inicial
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>MARA E LU</h3>
+                    <p>Formando para transformar vidas através da educação de qualidade.</p>
+                </div>
+                <div class="footer-nav">
+                    <h4>Navegação</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="cursos.html">Cursos</a></li>
+                    </ul>
+                </div>
+                <div class="footer-nav">
+                    <h4>Informações</h4>
+                    <ul>
+                        <li><a href="contacto.html">Contacto</a></li>
+                        <li><a href="consultar-inscricao.html">Consultar Inscrição</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 MARA E LU. Todos os direitos reservados.</p>
+                <div class="footer-bottom-links">
+                    <a href="politica-privacidade.html">Política de Privacidade</a>
+                    <a href="termos-servico.html">Termos de Serviço</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Camada de armazenamento partilhada com inscrever-se / admin -->
+    <script src="js/storage.js"></script>
+
+    <script>
+    // ============================================================
+    // Lógica do pagamento (vanilla JS comentado)
+    // ------------------------------------------------------------
+    // Fluxo:
+    //   1. Lê o código da URL ou pede ao utilizador.
+    //   2. Carrega a inscrição via AppStorage (servidor → IDB → local).
+    //   3. Mostra resumo + valor a pagar (calculado pela classe).
+    //   4. Permite escolher método e preencher dados (simulação).
+    //   5. Ao confirmar, cria o objecto "pagamento" e chama
+    //      AppStorage.salvarPagamento(id, pagamento) — que faz PATCH
+    //      no servidor para que a área admin veja imediatamente.
+    //   6. Mostra recibo com referência única.
+    // ============================================================
+
+    // Variável global com a inscrição em curso (acedida nos botões do recibo)
+    let _inscAtual = null;
+    let _metodoSelecionado = null;
+
+    // Tabela de valores da taxa de inscrição por classe.
+    // Para fins de simulação. Pode ser ajustado pelo administrador.
+    const TAXAS = {
+        // Taxa única de inscrição: 5000 Kz para todas as classes
+        iniciacao: { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '1':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '2':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '3':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '4':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '5':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '6':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '7':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '8':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '9':  { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '10': { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '11': { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '12': { valor: 5000, descricao: 'Taxa única de inscrição' },
+        '13': { valor: 5000, descricao: 'Taxa única de inscrição' }
+    };
+
+    // Formata número como moeda angolana (Kz)
+    function formatarKz(v) {
+        return Number(v).toLocaleString('pt-AO', { maximumFractionDigits: 0 });
+    }
+
+    // Calcula a taxa em função da classe
+    function calcularTaxa(insc) {
+        const c = (insc.classe || '').toString();
+        return TAXAS[c] || { valor: 5000, descricao: 'Taxa de Inscrição' };
+    }
+
+    // Gera uma referência multicaixa fictícia (9 dígitos) — formato XXX XXX XXX
+    function gerarReferenciaMcx() {
+        let s = '';
+        for (let i = 0; i < 9; i++) s += Math.floor(Math.random() * 10);
+        return s.replace(/(.{3})(.{3})(.{3})/, '$1 $2 $3');
+    }
+
+    // Gera um identificador de transacção fictício
+    function gerarTxId() {
+        return 'TX' + Date.now().toString(36).toUpperCase()
+                  + Math.random().toString(36).substring(2, 6).toUpperCase();
+    }
+
+    // Mostra/oculta blocos por id
+    function mostrar(id) { document.getElementById(id).style.display = 'block'; }
+    function esconder(id) { document.getElementById(id).style.display = 'none'; }
+
+    // ── Carregamento inicial ─────────────────────────────────
+    async function iniciar() {
+        const params = new URLSearchParams(window.location.search);
+        const codigo = (params.get('codigo') || '').trim().toUpperCase();
+        if (codigo) {
+            await carregarInscricao(codigo);
+        } else {
+            mostrar('bloco-pesquisa');
+        }
+    }
+
+    // Tenta encontrar a inscrição e mostrar a UI de pagamento
+    async function carregarInscricao(codigo) {
+        const insc = await AppStorage.getInscricaoComFotos(codigo);
+        if (!insc || !insc.id) {
+            const erro = document.getElementById('erro-pesquisa');
+            erro.textContent = 'Código não encontrado. Verifique se digitou correctamente.';
+            erro.style.display = 'block';
+            mostrar('bloco-pesquisa');
+            return;
+        }
+
+        _inscAtual = insc;
+        esconder('bloco-pesquisa');
+        mostrar('bloco-pagamento');
+        renderResumo(insc);
+        verificarEstadoPagamento(insc);
+    }
+
+    // Preenche o resumo e o valor
+    function renderResumo(insc) {
+        const taxa = calcularTaxa(insc);
+        const classeTxt = insc.classe === 'iniciacao' ? 'Iniciação' : (insc.classe + 'ª Classe');
+        const html = `
+            <div class="resumo-item"><span class="lbl">Código</span>
+              <span class="val" style="font-family:monospace;color:#4C1D95;">${insc.id}</span></div>
+            <div class="resumo-item"><span class="lbl">Candidato</span>
+              <span class="val">${insc.nomeCompleto || '—'}</span></div>
+            <div class="resumo-item"><span class="lbl">Classe</span>
+              <span class="val">${classeTxt}</span></div>
+            <div class="resumo-item"><span class="lbl">Curso / Período</span>
+              <span class="val">${(insc.cursoLabel || insc.curso || '—')} · ${insc.periodo || '—'}</span></div>
+            <div class="resumo-item"><span class="lbl">Estado da Inscrição</span>
+              <span class="val">${insc.estado || 'Pendente'}</span></div>
+            <div class="resumo-item"><span class="lbl">Email</span>
+              <span class="val">${insc.email || '—'}</span></div>
+        `;
+        document.getElementById('resumo-inscricao').innerHTML = html;
+        document.getElementById('valor-montante').innerHTML =
+            formatarKz(taxa.valor) + ' <small>Kz</small>';
+        document.getElementById('descricao-valor').textContent = taxa.descricao;
+    }
+
+    // Mostra avisos (já pago, rejeitado, pendente normal)
+    function verificarEstadoPagamento(insc) {
+        const area = document.getElementById('aviso-area');
+        area.innerHTML = '';
+
+        // Inscrição rejeitada — não permite pagar
+        if (insc.estado === 'Rejeitado') {
+            area.innerHTML = `
+                <div class="aviso error">
+                    <div class="ico"><i class="fas fa-times"></i></div>
+                    <div>
+                        <b>Inscrição rejeitada</b>
+                        Esta inscrição foi rejeitada pela administração e não pode receber pagamento.
+                        Se considera ser um engano, por favor contacte-nos.
+                    </div>
+                </div>`;
+            esconder('card-metodos');
+            return;
+        }
+
+        // Já pago
+        if (insc.pagamento && insc.pagamento.estado === 'Pago') {
+            const p = insc.pagamento;
+            area.innerHTML = `
+                <div class="aviso success">
+                    <div class="ico"><i class="fas fa-check"></i></div>
+                    <div>
+                        <b>Esta inscrição já está paga</b>
+                        Pago em ${new Date(p.dataPagamento).toLocaleString('pt-AO')}
+                        via <strong>${nomeMetodo(p.metodo)}</strong>.
+                        Referência da transacção: <code>${p.transacaoId || p.referencia || '—'}</code>.
+                    </div>
+                </div>`;
+            esconder('card-metodos');
+            return;
+        }
+
+        // Pendente sem aprovação ainda — pode pagar mesmo assim
+        if (insc.estado === 'Pendente') {
+            area.innerHTML = `
+                <div class="aviso info">
+                    <div class="ico"><i class="fas fa-info"></i></div>
+                    <div>
+                        <b>Inscrição em análise</b>
+                        Pode efectuar o pagamento agora para acelerar o processo.
+                        Se a inscrição vier a ser rejeitada, o valor será reembolsado.
+                    </div>
+                </div>`;
+        }
+    }
+
+    // Devolve o nome legível de um método interno
+    function nomeMetodo(k) {
+        return ({
+            'multicaixa-express': 'Multicaixa Express',
+            'cartao':             'Cartão Bancário',
+            'referencia':         'Referência Multicaixa'
+        })[k] || k;
+    }
+
+    // ── Selecção de método ──────────────────────────────────
+    function selecionarMetodo(metodo) {
+        _metodoSelecionado = metodo;
+
+        // Marcar visualmente o cartão escolhido
+        document.querySelectorAll('.metodo-card').forEach(c => c.classList.remove('selected'));
+        const card = document.querySelector(`.metodo-card[data-metodo="${metodo}"]`);
+        if (card) card.classList.add('selected');
+
+        // Mostrar apenas o formulário do método escolhido
+        document.querySelectorAll('.form-metodo').forEach(f => f.classList.remove('active'));
+        const form = document.getElementById('form-' + metodo);
+        if (form) form.classList.add('active');
+
+        // Se referência, gerar número fictício na hora
+        if (metodo === 'referencia') {
+            document.getElementById('ref-numero').textContent = gerarReferenciaMcx();
+        }
+    }
+
+    // Auxiliares de formatação dos campos do cartão
+    function formatarNumeroCartao(el) {
+        let v = el.value.replace(/\D/g, '').substring(0, 16);
+        el.value = v.replace(/(.{4})/g, '$1 ').trim();
+    }
+    function formatarValidade(el) {
+        let v = el.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+        el.value = v;
+    }
+
+    // ── Processamento (simulação) ───────────────────────────
+    async function processarPagamento(ev, metodo) {
+        ev.preventDefault();
+        if (!_inscAtual) return false;
+
+        // Recolher detalhes específicos do método (apenas para o recibo)
+        const detalhes = {};
+        if (metodo === 'multicaixa-express') {
+            detalhes.canal = 'QR Code Multicaixa Express';
+            detalhes.beneficiario = 'Colégio Mara & Lú';
+        } else if (metodo === 'cartao') {
+            const num = document.getElementById('cart-numero').value.replace(/\s/g, '');
+            // Validação simples: 13 a 19 dígitos
+            if (num.length < 13) { alert('Número de cartão inválido.'); return false; }
+            // Mascarar para o recibo: só mostrar últimos 4
+            detalhes.cartaoMasked = '**** **** **** ' + num.slice(-4);
+            detalhes.titular = document.getElementById('cart-titular').value;
+        } else if (metodo === 'referencia') {
+            detalhes.referencia = document.getElementById('ref-numero').textContent;
+            detalhes.entidade = '10495';
+        }
+
+        // Mostrar spinner
+        esconder('bloco-pagamento');
+        mostrar('bloco-processando');
+        document.getElementById('processando-msg').textContent =
+            metodo === 'multicaixa-express'
+                ? 'A confirmar a transferência Multicaixa Express...'
+                : 'A processar o pagamento, aguarde...';
+
+        // Simular latência (2s)
+        await new Promise(r => setTimeout(r, 2000));
+
+        // Construir objecto pagamento
+        const taxa = calcularTaxa(_inscAtual);
+        const pagamento = {
+            estado: 'Pago',
+            metodo,
+            metodoLabel: nomeMetodo(metodo),
+            valor: taxa.valor,
+            moeda: 'AOA',
+            descricao: taxa.descricao,
+            transacaoId: gerarTxId(),
+            referencia: detalhes.referencia || gerarReferenciaMcx(),
+            detalhes,
+            dataPagamento: new Date().toISOString()
+        };
+
+        // Persistir (servidor + local + IDB)
+        const r = await AppStorage.salvarPagamento(_inscAtual.id, pagamento);
+        _inscAtual.pagamento = pagamento;
+
+        // Notificação para o admin (in-app, lida na próxima visita)
+        try {
+            const arr = JSON.parse(localStorage.getItem('notifications') || '[]');
+            arr.unshift({
+                id: Date.now(),
+                message: `Pagamento recebido: ${_inscAtual.nomeCompleto || _inscAtual.id} (${formatarKz(pagamento.valor)} Kz)`,
+                type: 'success',
+                date: new Date().toISOString(),
+                read: false
+            });
+            localStorage.setItem('notifications', JSON.stringify(arr.slice(0, 50)));
+        } catch (e) { /* ignora se localStorage cheio */ }
+
+        // Mostrar recibo
+        esconder('bloco-processando');
+        renderRecibo(_inscAtual, pagamento);
+        mostrar('bloco-recibo');
+        // Levar o utilizador ao topo
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
+    }
+
+    // Constrói o HTML do recibo
+    function renderRecibo(insc, p) {
+        const det = document.getElementById('recibo-detalhes');
+        let metodoExtra = '';
+        if (p.metodo === 'cartao') {
+            metodoExtra = `
+                <div class="linha"><span>Titular</span><strong>${p.detalhes.titular || '—'}</strong></div>
+                <div class="linha"><span>Cartão</span><strong>${p.detalhes.cartaoMasked || '—'}</strong></div>`;
+        } else if (p.metodo === 'multicaixa-express') {
+            metodoExtra = `
+                <div class="linha"><span>Beneficiário</span><strong>${p.detalhes.beneficiario || 'Colégio Mara & Lú'}</strong></div>
+                <div class="linha"><span>Canal</span><strong>${p.detalhes.canal || 'QR Code Multicaixa Express'}</strong></div>`;
+        } else if (p.metodo === 'referencia') {
+            metodoExtra = `
+                <div class="linha"><span>Entidade</span><strong>${p.detalhes.entidade}</strong></div>
+                <div class="linha"><span>Referência</span><strong>${p.detalhes.referencia}</strong></div>`;
+        }
+
+        det.innerHTML = `
+            <div class="linha"><span>Inscrição</span><strong>${insc.id}</strong></div>
+            <div class="linha"><span>Candidato</span><strong>${insc.nomeCompleto || '—'}</strong></div>
+            <div class="linha"><span>Método</span><strong>${p.metodoLabel}</strong></div>
+            ${metodoExtra}
+            <div class="linha"><span>Transacção</span><strong>${p.transacaoId}</strong></div>
+            <div class="linha"><span>Data</span><strong>${new Date(p.dataPagamento).toLocaleString('pt-AO')}</strong></div>
+            <div class="linha"><span>Valor pago</span>
+                <strong style="color:#059669;font-size:1.1rem;">${formatarKz(p.valor)} Kz</strong></div>
+        `;
+    }
+
+    // ── Submit da pesquisa ──────────────────────────────────
+    document.getElementById('form-pesquisa').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const codigo = document.getElementById('codigo-input').value.trim().toUpperCase();
+        if (!codigo) return;
+        document.getElementById('erro-pesquisa').style.display = 'none';
+        await carregarInscricao(codigo);
+    });
+
+    // Arrancar
+    iniciar();
+    </script>
+</body>
+</html>

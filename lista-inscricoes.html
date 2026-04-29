@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lista de Inscrições</title>
+        <!-- Comentário: 
+                lista-inscricoes.html
+                Página administrativa que lista as inscrições armazenadas no localStorage.
+                - Lê/filtra a chave 'inscricoes' do localStorage
+                - Permite procurar por código/nome e filtrar por estado
+                - Ações: Ver (abre modal detalhado), Aprovar, Recusar
+                - Ao aprovar/recusar a aplicação atualiza localStorage, grava uma notificação
+                    in-app e tenta enviar um e-mail transacional chamando o endpoint local
+                    (http://localhost:3001/send-email). Configure o servidor de e-mail conforme
+                    instruções em README_EMAIL.md.
+                NOTA: autenticação e envio real em produção devem ser feitos por backend seguro.
+                Observação: Esta página chama o endpoint local de e-mail
+                transacional (`POST http://localhost:3001/send-email`) quando
+                um administrador aprova/recusa uma inscrição. Configure o
+                servidor conforme README_EMAIL.md e o ficheiro `.env`.
+        -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/auth-guard.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="css/lista-inscricoes.css">
+</head>
+<body class="flex">
+    <aside class="sidebar">
+        <div class="p-6 border-b flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold">L</div>
+            <span class="text-xl font-bold text-gray-800">Mara & Lú</span>
+        </div>
+        <nav class="p-4 flex-1 space-y-1">
+            <a href="Dashboard2.html" class="nav-item"><span class="flex items-center gap-3"><i class="fas fa-home"></i> Dashboard</span></a>
+            <div>
+                <button onclick="toggleMenu('m1', 'i1')" class="nav-item w-full active">
+                    <span class="flex items-center gap-3"><i class="fas fa-briefcase"></i> Inscrições e Matrículas</span>
+                    <i id="i1" class="fas fa-chevron-down text-xs rotate-icon active"></i>
+                </button>
+                <div id="m1" class="submenu open">
+                    <a href="lista-inscricoes.html" class="block py-2 text-sm text-purple-600 font-bold">Candidaturas Pendentes</a>
+                    <a href="aprovados.html" class="block py-2 text-sm hover:text-purple-600">Aprovados</a>
+                    <a href="todas-inscricoes.html" class="block py-2 text-sm hover:text-purple-600">Todas as Inscrições</a>
+                </div>
+            </div>
+            <div>
+                <button onclick="toggleMenu('m2', 'i2')" class="nav-item w-full">
+                    <span class="flex items-center gap-3"><i class="fas fa-book"></i> Gestão Acadêmica</span>
+                    <i id="i2" class="fas fa-chevron-down text-xs rotate-icon"></i>
+                </button>
+                <div id="m2" class="submenu">
+                    <a href="cursos-admin.html" class="block py-2 text-sm hover:text-purple-600">Cursos</a>
+                    <a href="vagas.html" class="block py-2 text-sm hover:text-purple-600">Gestão de Vagas</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="">
+        <header class="header-admin">
+            <div class="flex items-center gap-4">
+                
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fas fa-graduation-cap"></i></div>
+                    <span class="font-bold">Mara & Lú</span>
+                </div>
+            </div>
+            
+        </header>
+
+        <div class="container-padding">
+            <div class="flex items-center gap-4 mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Gestão de Inscrições</h1>
+                <nav class="text-sm text-gray-400">
+                    <i class="fas fa-home"></i> Página Inicial > <span class="text-gray-600">Inscrições</span>
+                </nav>
+            </div>
+
+            <div class="card">
+                <h2 class="text-lg font-bold mb-6">Inscrições</h2>
+                
+                <div class="flex flex-col md:flex-row gap-4 mb-8 items-end">
+                    <div class="flex-1 max-w-md">
+                        <input type="text" id="busca" onkeyup="carregarInscricoes()" placeholder="Buscar por código ou nome..." class="p-3 border rounded-md w-full">
+                    </div>
+                    <div class="w-full md:w-64">
+                        <select id="filtro-estado" onchange="carregarInscricoes()" class="p-3 border rounded-md w-full">
+                            <option value="Pendente">Pendentes</option>
+                            <option value="Aprovado">Aprovados</option>
+                            <option value="Rejeitado">Rejeitados</option>
+                            <option value="Todos">Todos</option>
+                        </select>
+                    </div>
+                    <button onclick="carregarInscricoes()" class="bg-yellow-500 text-white px-8 py-3 rounded-md font-bold hover:bg-yellow-600 transition">Filtrar</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Candidato</th>
+                                <th>Idade</th>
+                                <th>Curso</th>
+                                <th>Data</th>
+                                <th>Estado Inscrição</th>
+                                <th>Estado Pagamento</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-corpo" class="text-sm">
+                            <!-- Comentário:  JS popula aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/storage.js"></script>
+    <script src="js/admin-core.js"></script>
+    <script>
+        // Alterna visibilidade de submenus no sidebar
+        function toggleMenu(id, iconId) {
+            const menu = document.getElementById(id);
+            const icon = document.getElementById(iconId);
+            if(menu) menu.classList.toggle('open');
+            if(icon) icon.classList.toggle('active');
+        }
+
+        function carregarInscricoes() {
+            const inscricoes = AdminCore.getInscricoes();
+            const busca = document.getElementById('busca').value.toLowerCase().trim();
+            const estado = document.getElementById('filtro-estado').value;
+            
+            const corpo = document.getElementById('lista-corpo');
+            if(!corpo) return;
+            corpo.innerHTML = '';
+
+            const filtradas = inscricoes.filter(insc => {
+                const nome = (insc.nomeCompleto || '').toLowerCase();
+                const id = (insc.id || '').toString().toLowerCase();
+                const matchBusca = busca === '' || nome.includes(busca) || id.includes(busca);
+                const matchEstado = estado === 'Todos' || insc.estado === estado;
+                return matchBusca && matchEstado;
+            });
+
+            if (filtradas.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400">Nenhuma inscrição encontrada</td></tr>';
+                return;
+            }
+
+            filtradas.forEach(insc => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50';
+                const badgeClass = insc.estado === 'Pendente' ? 'badge-pending' : (insc.estado === 'Aprovado' ? 'badge-approved' : 'badge-rejected');
+                const idadeExib = insc.idade != null ? insc.idade + ' anos' : (function(d){
+                    if(!d) return 'N/D';
+                    const hoje = new Date(); const nasc = new Date(d);
+                    let i = hoje.getFullYear() - nasc.getFullYear();
+                    const m = hoje.getMonth() - nasc.getMonth();
+                    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) i--;
+                    return isNaN(i) ? 'N/D' : i + ' anos';
+                })(insc.dataNascimento);
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-xs font-bold text-purple-600">${insc.id}</td>
+                    <td class="p-4">${insc.nomeCompleto}</td>
+                    <td class="p-4">${idadeExib}</td>
+                    <td class="p-4">${insc.cursoLabel || insc.curso || 'N/A'}</td>
+                    <td class="p-4 text-gray-400">${insc.dataInscricao || '---'}</td>
+                    <td class="p-4"><span class="badge ${badgeClass}">${insc.estado}</span></td>
+                    <td class="p-4">${renderEstadoPagamento(insc)}</td>
+                    <td class="p-4 text-right">
+                        <div style="display:flex; justify-content:flex-end; gap:4px; flex-wrap:wrap;">
+                            <button onclick="verInscricao('${insc.id}')" style="background:#dbeafe; color:#1d4ed8; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#bfdbfe'" onmouseout="this.style.background='#dbeafe'">Ver</button>
+                            ${insc.estado === 'Pendente' ? `
+                                <button onclick="confirmarAcao('${insc.id}','Aprovado')" style="background:#dcfce7; color:#15803d; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">Aprovar</button>
+                                <button onclick="confirmarAcao('${insc.id}','Rejeitado')" style="background:#fee2e2; color:#b91c1c; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">Recusar</button>
+                            ` : ''}
+                            ${(!insc.pagamento || insc.pagamento.estado !== 'Pago') && insc.estado !== 'Rejeitado' ? `
+                                <button onclick="marcarPago('${insc.id}')" title="Registar pagamento manualmente (admin)" style="background:#fef3c7; color:#92400e; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'"><i class="fas fa-coins"></i> Marcar Pago</button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        // ── Pagamento — renderização e acção manual (admin) ──
+        // Devolve o HTML da badge de pagamento em função do objecto insc.pagamento
+        function renderEstadoPagamento(insc) {
+            const p = insc.pagamento;
+            if (p && p.estado === 'Pago') {
+                const valor = Number(p.valor || 0).toLocaleString('pt-AO');
+                return `<span style="display:inline-flex;align-items:center;gap:5px;background:#d1fae5;color:#065f46;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;" title="${p.metodoLabel || p.metodo || ''} — ${p.transacaoId || ''}">
+                    <i class="fas fa-check-circle"></i> Pago · ${valor} Kz
+                </span>`;
+            }
+            if (insc.estado === 'Rejeitado') {
+                return '<span style="color:#9ca3af;font-size:12px;">N/A</span>';
+            }
+            return `<span style="display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;">
+                <i class="fas fa-clock"></i> Aguardando
+            </span>`;
+        }
+
+        // Acção do admin: marcar uma inscrição como paga manualmente
+        // (ex: aluno trouxe o talão de pagamento em mão).
+        async function marcarPago(id) {
+            const inscricoes = AdminCore.getInscricoes();
+            const insc = inscricoes.find(i => i.id === id);
+            if (!insc) return alert('Inscrição não encontrada.');
+            if (!confirm(`Confirmar pagamento manual da inscrição ${id} (${insc.nomeCompleto})?`)) return;
+
+            // Mesma tabela de taxas usada na página pública de pagamento.
+            const TAXAS = {
+                iniciacao:5000,'1':5000,'2':5000,'3':5000,'4':5000,'5':5000,'6':5000,
+                '7':7500,'8':7500,'9':7500,
+                '10':12000,'11':12000,'12':12000,'13':12000
+            };
+            const valor = TAXAS[(insc.classe || '').toString()] || 5000;
+
+            const pagamento = {
+                estado: 'Pago',
+                metodo: 'manual',
+                metodoLabel: 'Registo Manual (admin)',
+                valor,
+                moeda: 'AOA',
+                transacaoId: 'MN' + Date.now().toString(36).toUpperCase(),
+                dataPagamento: new Date().toISOString(),
+                registadoPor: 'admin'
+            };
+
+            const r = await AppStorage.salvarPagamento(id, pagamento);
+            if (!r.ok && r.fonte !== 'offline') {
+                return alert('Falha ao registar o pagamento.');
+            }
+            AdminCore.addNotification(`Pagamento registado manualmente: ${insc.nomeCompleto} (${valor} Kz)`, 'success');
+            // Forçar refresh da lista a partir do servidor
+            AdminCore.getInscricoes();
+            setTimeout(carregarInscricoes, 300);
+        }
+
+        function alterarEstado(id, novoEstado) {
+            let inscricoes = AdminCore.getInscricoes();
+            const index = inscricoes.findIndex(i => i.id == id);
+            
+            if (index !== -1) {
+                const insc = inscricoes[index];
+                inscricoes[index].estado = novoEstado;
+                AdminCore.saveInscricoes(inscricoes);
+                
+                const msg = novoEstado === 'Aprovado' ? `Inscrição ${id} de ${insc.nomeCompleto} aprovada.` : `Inscrição ${id} de ${insc.nomeCompleto} recusada.`;
+                AdminCore.addNotification(msg, novoEstado === 'Aprovado' ? 'success' : 'error');
+                
+                // Email simulado
+                AdminCore.sendEmail(insc.email, `Status da sua Inscrição - ${novoEstado}`, `Olá ${insc.nomeCompleto}, sua inscrição foi ${novoEstado.toLowerCase()}.`);
+                
+                carregarInscricoes();
+            }
+        }
+
+        // Envia email transacional via endpoint local (/send-email)
+        async function sendTransactionalEmail(insc, novoEstado){
+            // Se não existir email, não tenta enviar
+            if(!insc || !insc.email) return;
+            const subject = novoEstado === 'Aprovado' ? 'Sua inscrição foi aprovada' : 'Sua inscrição foi rejeitada';
+            const text = novoEstado === 'Aprovado'
+                ? `Olá ${insc.nomeCompleto},\n\nSua inscrição (código ${insc.id}) foi aprovada. Entre em contacto para próximos passos.`
+                : `Olá ${insc.nomeCompleto},\n\nLamentamos, sua inscrição (código ${insc.id}) foi rejeitada.`;
+            // prefer html could be added
+            try{
+                await fetch('http://localhost:3001/send-email', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ to: insc.email, subject, text })
+                });
+            }catch(e){ console.warn('erro ao enviar email', e); }
+        }
+
+        // Notificações in-app armazenadas em localStorage
+        function addNotification(obj){
+            const arr = JSON.parse(localStorage.getItem('notifications')||'[]');
+            arr.unshift(obj);
+            localStorage.setItem('notifications', JSON.stringify(arr));
+            // atualizar badge se existir
+            const el = document.getElementById('notif-count'); if(el) el.textContent = arr.length;
+        }
+
+        // Mostrar detalhes completos da inscrição em modal.
+        // Usa AppStorage.getInscricaoComFotos para obter a versão completa
+        // (com imagens e PDFs) a partir do servidor, IndexedDB ou localStorage.
+        async function verInscricao(id) {
+            const insc = await AppStorage.getInscricaoComFotos(id);
+            if (!insc) return alert('Inscrição não encontrada.');
+
+            const modal = document.getElementById('modal-inscricao');
+            const content = document.getElementById('modal-inscricao-content');
+            if(!modal || !content) return;
+
+            const rawImgs = insc.fotos || insc.imagens || (insc.foto ? [insc.foto] : []);
+            const imagens = rawImgs.map(i => {
+                if (typeof i === 'string') return { label: '', src: i, isPdf: i.startsWith('data:application/pdf') };
+                return {
+                    label: i.campo || '',
+                    src: i.data || i.src || '',
+                    isPdf: (i.mime || '').includes('pdf'),
+                    nome: i.nome || ''
+                };
+            });
+
+            // Guarda temporariamente para uso na função global setInscricaoViewer
+            window._inscModalImagens = imagens;
+
+            const labelMap = {
+                foto_passe: 'Fotografia tipo passe',
+                cartao_vacinas: 'Cartão de vacinas',
+                copia_cedula: 'Cópia do documento',
+                atestado_medico: 'Atestado médico'
+            };
+
+            const thumbsHtml = imagens.length ? imagens.map((item, index) => {
+                const tip = item.label ? labelMap[item.label] || item.label : '';
+                const activeClass = index === 0 ? ' active' : '';
+                if (item.isPdf) {
+                    return `<button class="thumb${activeClass}" style="border:none;background:#f3f4f6;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;" onclick="setInscricaoViewer(${index})">PDF${tip?` (${tip})`:''}</button>`;
+                }
+                return `<img src="${item.src}" class="thumb${activeClass}" style="width:64px;height:64px;object-fit:cover;cursor:pointer;" onclick="setInscricaoViewer(${index})" title="${tip}">`;
+            }).join('') : '';
+
+            const imagensHtml = imagens.length ? `
+                <div class="gallery">
+                    <div class="main-img-wrap" id="modal-file-viewer"></div>
+                    <div class="thumbs">${thumbsHtml}</div>
+                </div>
+            ` : `<div class="no-img">Sem imagens carregadas</div>`;
+
+            content.innerHTML = `
+                <div class="modal-card">
+                    <div class="modal-left">
+                        ${imagensHtml}
+                        <div class="modal-actions">
+                            <button class="modal-close" onclick="fecharModal()">Fechar</button>
+                        </div>
+                    </div>
+                    <div class="modal-right">
+                        <h3>Detalhes da Inscrição</h3>
+                        <div class="details">
+                          <p><strong>Código:</strong> ${insc.id}</p>
+                          <p><strong>Estado:</strong> ${insc.estado || ''}</p>
+                          <p><strong>Nome:</strong> ${insc.nomeCompleto || ''}</p>
+                          <p><strong>Sexo:</strong> ${insc.sexo || 'N/D'}</p>
+                          <p><strong>Idade:</strong> ${insc.idade ? insc.idade + ' anos' : (function(d){if(!d)return'N/D';const h=new Date(),n=new Date(d);let i=h.getFullYear()-n.getFullYear();const m=h.getMonth()-n.getMonth();if(m<0||(m===0&&h.getDate()<n.getDate()))i--;return isNaN(i)?'N/D':i+' anos';})(insc.dataNascimento)}</p>
+                          <p><strong>Data de Nascimento:</strong> ${insc.dataNascimento || 'N/D'}</p>
+                          <p><strong>Nacionalidade:</strong> ${insc.nacionalidade || 'N/D'}</p>
+                          <p><strong>BI / Documento:</strong> ${insc.documento || 'N/D'}</p>
+                          <p><strong>Classe:</strong> ${insc.classe || 'N/D'}</p>
+                          <p><strong>Período:</strong> ${insc.periodo || 'N/D'}</p>
+                          <p><strong>Curso:</strong> ${insc.cursoLabel || insc.curso || 'N/D'}</p>
+                          <p><strong>Telefone:</strong> ${insc.telefone || 'N/D'}</p>
+                          <p><strong>WhatsApp:</strong> ${insc.whatsapp || 'N/D'}</p>
+                          <p><strong>Email:</strong> ${insc.email || 'N/D'}</p>
+                          <p><strong>Morada:</strong> ${insc.morada || 'N/D'}</p>
+                          <p><strong>Data de Inscrição:</strong> ${insc.dataInscricao || 'N/D'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+            if (imagens.length) setInscricaoViewer(0);
+        }
+
+        function setInscricaoViewer(index) {
+            const imagens = window._inscModalImagens || [];
+            const viewer = document.getElementById('modal-file-viewer');
+            const thumbs = document.querySelectorAll('.thumb');
+            thumbs.forEach(t => t.classList.remove('active'));
+            if (!viewer || !imagens[index]) return;
+            const item = imagens[index];
+            if (thumbs[index]) thumbs[index].classList.add('active');
+
+            if (item.isPdf) {
+                viewer.innerHTML = `<iframe src="${item.src}" style="width:100%;height:320px;border:none;border-radius:10px;"></iframe>`;
+            } else {
+                viewer.innerHTML = `<img src="${item.src}" style="width:100%;height:320px;object-fit:contain;border-radius:10px;" alt="${item.nome||''}">`;
+            }
+        }
+
+        function fecharModal() {
+            const modal = document.getElementById('modal-inscricao');
+            modal.style.display = 'none';
+        }
+
+        // Confirmação antes de alterar estado
+        function confirmarAcao(id, acao){
+            const modal = document.getElementById('modal-confirm');
+            const texto = document.getElementById('modal-confirm-text');
+            if(!modal || !texto) {
+                // Se o modal de confirmação não existir no HTML, cria um fallback simples ou usa o modal existente
+                if(confirm(`Tem certeza que deseja ${acao === 'Aprovado' ? 'aprovar' : 'recusar'} a inscrição ${id}?`)) {
+                    alterarEstado(id, acao);
+                }
+                return;
+            }
+            modal.dataset.targetId = id;
+            modal.dataset.action = acao;
+            texto.textContent = `Tem certeza que deseja ${acao === 'Aprovado' ? 'aprovar' : 'recusar'} a inscrição ${id}?`;
+            modal.style.display = 'flex';
+        }
+        function cancelarConfirm(){
+            const modal = document.getElementById('modal-confirm');
+            modal.style.display = 'none';
+            delete modal.dataset.targetId; delete modal.dataset.action;
+        }
+        function confirmarExecutar(){
+            const modal = document.getElementById('modal-confirm');
+            const id = modal.dataset.targetId;
+            const acao = modal.dataset.action;
+            if(id && acao){ alterarEstado(id, acao); }
+            cancelarConfirm();
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarInscricoes);
+    </script>
+    <!-- Comentário:  Modal de detalhes da inscrição -->
+    <div id="modal-inscricao" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:60;">
+        <div style="background:#fff;border-radius:8px;max-width:720px;width:90%;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.2);position:relative;">
+            <button onclick="fecharModal()" style="position:absolute;right:12px;top:12px;background:#f3f4f6;border:none;padding:6px 8px;border-radius:6px;cursor:pointer">Fechar</button>
+            <div id="modal-inscricao-content"></div>
+        </div>
+    </div>
+    </div>
+
+            <!-- Botão de configurações (roda dentada) -->
+    <button id="settings-btn" onclick="openSettingsModal()" class="fixed right-0 top-1/2 -translate-y-1/2 bg-gray-800 text-white p-3 rounded-l-md shadow-lg" style="z-index:65;">
+        <i class="fas fa-cog gear-spin"></i>
+    </button>
+
+    <!-- Modal de Configurações Estilizado -->
+    <div id="modal-config" style="display:none;position:fixed;inset:0;background:rgba(10,5,30,0.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;z-index:70;" onclick="if(event.target===this) closeSettingsModal()">
+        <div style="background:#fff;border-radius:16px;padding:28px;width:360px;max-width:92%;box-shadow:0 24px 60px rgba(10,5,40,0.28);animation:modalSlideIn 0.22s cubic-bezier(.16,1,.3,1);">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f0eeff;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4C1D95,#7c3aed);display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-cog" style="color:white;font-size:15px;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0;font-size:1.05rem;font-weight:700;color:#1e0a4a;">Configurações</h4>
+                        <p style="margin:0;font-size:0.78rem;color:#9ca3af;">Área administrativa</p>
+                    </div>
+                </div>
+                <button onclick="closeSettingsModal()" style="background:#f3f4f6;border:none;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:16px;">&times;</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button onclick="window.location.href='index.html'" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;cursor:pointer;font-size:0.92rem;font-weight:600;color:#1e0a4a;text-align:left;width:100%;transition:all 0.15s;" onmouseover="this.style.background='#f5f0ff';this.style.borderColor='#4C1D95'" onmouseout="this.style.background='#fff';this.style.borderColor='#e5e7eb'">
+                    <span style="width:34px;height:34px;border-radius:8px;background:#ede9fe;color:#4C1D95;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;"><i class="fas fa-globe"></i></span>
+                    <span><strong>Ver site público</strong><div style="font-size:0.75rem;color:#6b7280;font-weight:400;">Abrir a página principal do colégio</div></span>
+                </button>
+                <button onclick="logout()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1.5px solid #fca5a5;background:#fff;cursor:pointer;font-size:0.92rem;font-weight:600;color:#dc2626;text-align:left;width:100%;transition:all 0.15s;" onmouseover="this.style.background='#fff1f1'" onmouseout="this.style.background='#fff'">
+                    <span style="width:34px;height:34px;border-radius:8px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;"><i class="fas fa-sign-out-alt"></i></span>
+                    <span><strong>Terminar sessão</strong><div style="font-size:0.75rem;color:#f87171;font-weight:400;">Sair da área administrativa</div></span>
+                </button>
+            </div>
+            <div style="margin-top:20px;padding-top:12px;border-top:1px solid #f0eeff;text-align:center;">
+                <span style="font-size:0.72rem;color:#c4b5fd;">Colégio Mara &amp; Lú &bull; Painel Administrativo v1.0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openSettingsModal(){ const m=document.getElementById('modal-config'); if(m) m.style.display='flex'; }
+        function closeSettingsModal(){ const m=document.getElementById('modal-config'); if(m) m.style.display='none'; }
+    </script>
+        <!-- Comentário:  Modal de confirmação -->
+    <div id="modal-confirm" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:70;">
+        <div class="confirm-card">
+            <h3 style="font-size:1.25rem; font-weight:700; color:#1f2937; margin-bottom:0.75rem;">Confirmar Ação</h3>
+            <p id="modal-confirm-text" style="color:#4b5563; line-height:1.5; margin:0;"></p>
+            <div class="confirm-actions">
+                <button class="btn-cancel" onclick="cancelarConfirm()">Cancelar</button>
+                <button class="btn-confirm" onclick="confirmarExecutar()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

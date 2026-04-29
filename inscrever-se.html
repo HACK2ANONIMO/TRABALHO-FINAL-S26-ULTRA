@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<!-- Comentário:
+  Arquivo: inscrever-se.html
+  Propósito: Formulário público para candidaturas/inscrições nos cursos.
+
+  Pipeline de dados:
+  - Texto e ficheiros (fotos, BI, atestado, etc.) são enviados ao
+    servidor (Express + SQLite) via `js/storage.js`
+    (AppStorage.salvarInscricao). Os ficheiros vão em base64 num PATCH
+    separado para não bloquear a confirmação inicial.
+  - O servidor envia AUTOMATICAMENTE dois emails: um para a escola
+    (notificação) e outro para o candidato (confirmação com código).
+  - Em modo offline os dados ficam em IndexedDB e sincronizam quando
+    houver ligação ao servidor.
+
+  Validações aplicadas neste ecrã:
+  - BI Angolano: 9 dígitos + 2 letras maiúsculas + 3 dígitos
+    (ex.: `005521447LA042`).
+  - Telefone Angolano: começa por 9 e tem 9 dígitos.
+  - Tamanho máximo de cada ficheiro: 5 MB (avisado ao utilizador).
+-->
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Preencha o formulário para se inscrever em nossos cursos">
+  <title>Inscrever-se - MARA E LU</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/inscrever-se.css">
+</head>
+<body>
+    <!-- Comentário: Início do corpo da página -->
+  <!-- Comentário:  Top Header -->
+  <header class="top-header">
+    <a href="entrar.html">Entrar</a>
+    <span>|</span>
+    <a href="desenvolvedores.html">Desenvolvedores</a>
+  </header>
+
+  <!-- Comentário:  Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="images/logo-mara-lu.png" alt="MARA E LU Logo">
+      <span>Mara & Lú</span>
+    </a>
+
+    <div class="navbar-content">
+      <div class="nav-links">
+        <a href="index.html">INÍCIO</a>
+        <a href="sobre.html">SOBRE</a>
+        <a href="cursos.html">NOSSOS CURSOS</a>
+        <a href="contacto.html">CONTACTO</a>
+      </div>
+
+      <div class="nav-buttons">
+        <a href="inscrever-se.html" class="btn btn-accent">Inscrever-se</a>
+        <a href="consultar-inscricao.html" class="btn btn-secondary">Consultar Inscrição</a>
+      </div>
+
+      <button class="mobile-menu-btn" aria-label="Menu">
+        <span>☰</span>
+      </button>
+    </div>
+
+    <!-- Comentário:  Mobile Navigation -->
+    <div class="mobile-nav">
+      <a href="index.html">INÍCIO</a>
+      <a href="sobre.html">SOBRE</a>
+      <a href="cursos.html">CURSOS</a>
+      <a href="contacto.html">CONTACTO</a>
+    </div>
+  </nav>
+
+  <!-- Comentário:  Registration Header -->
+  <section class="registration-header">
+    <div class="container">
+      <h1>Inscrever-se</h1>
+      <p>Preencha o formulário abaixo para se inscrever em nossos cursos</p>
+    </div>
+  </section>
+
+  <!-- Comentário:  Registration Form -->
+  <section class="registration-form-container">
+    <div class="registration-form-header">
+      <div class="form-header">
+        <div class="form-header-bar"></div>
+        <h2>Dados do Candidato</h2>
+      </div>
+      <p>Preencha seus dados pessoais básicos e escolha o curso desejado. Após aprovação, você será convidado a completar seus dados para matrícula.</p>
+      
+      <!-- Comentário:  Requisitos de Documentação -->
+      <div class="docs-requirements" style="margin-top: 2rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1.5rem; border-radius: 8px;">
+        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">Documentos necessários para o acto da matrícula presencial por classes:</h3>
+        
+        <div class="docs-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+          <div>
+            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--secondary);">A) Iniciação</h4>
+            <ul style="font-size: 0.9rem; list-style: disc; padding-left: 1.2rem; color: var(--text-light);">
+              <li>Capa de processos</li>
+              <li>2 fotografias do tipo passe</li>
+              <li>Atestado Médico</li>
+              <li>Cópia da Cédula e cartão de vacinas</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--secondary);">B) 1ª à 6ª Classes</h4>
+            <ul style="font-size: 0.9rem; list-style: disc; padding-left: 1.2rem; color: var(--text-light);">
+              <li>Capa de processos</li>
+              <li>Relatório descritivo</li>
+              <li>2 fotografias do tipo passe</li>
+              <li>Cópia da cédula</li>
+              <li>Atestado médico</li>
+              <li>Cartão de vacinas (5 à 10 anos)</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--secondary);">C) I Ciclo (7ª, 8ª e 9ª)</h4>
+            <ul style="font-size: 0.9rem; list-style: disc; padding-left: 1.2rem; color: var(--text-light);">
+              <li>Certificado da 6ª classe</li>
+              <li>2 fotografias do tipo passe</li>
+              <li>Atestado médico</li>
+              <li>Declaração das classes anteriores</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--secondary);">D) II Ciclo (10ª à 13ª)</h4>
+            <ul style="font-size: 0.9rem; list-style: disc; padding-left: 1.2rem; color: var(--text-light);">
+              <li>Certificado da 9ª classe</li>
+              <li>2 fotografias do tipo passe</li>
+              <li>Atestado médico</li>
+              <li>Declaração das classes anteriores</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+          <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 600;">Confirmação de Matrícula:</h3>
+          <p style="font-size: 0.9rem; color: var(--text-light);">→ Uma fotocópia da cédula ou BI; Atestado médico; Cartão de vacinas (5 à 10 anos); 2 fotografias tipo passe.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comentário:  Formulário de inscrição configurado para salvar localmente e enviar notificação via Formspark -->
+    <form id="registration-form" method="POST">
+      <!-- Nota: o envio de email agora usa o Formspark (substitui o FormSubmit). -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome Completo <span>*</span></label>
+          <input type="text" name="nomeCompleto" placeholder="Digite seu nome completo" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sexo <span>*</span></label>
+          <select name="sexo" class="form-select" required>
+              <option value="" disabled selected>Selecione o sexo</option>
+              <option value="masculino">Masculino</option>
+              <option value="feminino">Feminino</option>
+            </select>
+        </div>
+      </div>
+
+      <div class="form-row form-row-3">
+        <div class="form-group">
+          <label class="form-label">Data de Nascimento <span>*</span></label>
+          <input type="date" name="dataNascimento" id="data-nascimento" class="form-input" required>
+          <!-- Idade calculada automaticamente -->
+          <div id="idade-exibicao" style="margin-top:6px;font-size:0.82rem;color:#4C1D95;font-weight:600;display:none;">
+            <span id="idade-valor"></span> anos
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nacionalidade <span>*</span></label>
+          <input type="text" name="nacionalidade" placeholder="Sua nacionalidade" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">BI / Nº do Documento <span>*</span></label>
+          <input type="text" name="documento"
+                 placeholder="Ex: 005521447LA042"
+                 class="form-input"
+                 style="text-transform: uppercase;"
+                 required>
+          <small style="color:#6b7280; font-size:0.78rem;">
+            Indique o número exactamente como aparece no seu documento.
+          </small>
+        </div>
+      </div>
+
+      <div class="form-row form-row-3">
+        <div class="form-group">
+          <label class="form-label">Classe a Frequentar <span>*</span></label>
+          <select name="classe" class="form-select" required>
+            <option value="" disabled selected>Selecione a classe</option>
+            <option value="iniciacao">Iniciação</option>
+            <option value="1">1ª Classe</option>
+            <option value="2">2ª Classe</option>
+            <option value="3">3ª Classe</option>
+            <option value="4">4ª Classe</option>
+            <option value="5">5ª Classe</option>
+            <option value="6">6ª Classe</option>
+            <option value="7">7ª Classe</option>
+            <option value="8">8ª Classe</option>
+            <option value="9">9ª Classe</option>
+            <option value="10">10ª Classe</option>
+            <option value="11">11ª Classe</option>
+            <option value="12">12ª Classe</option>
+            <option value="13">13ª Classe</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Período <span>*</span></label>
+          <select name="periodo" id="periodo-select" class="form-select" required>
+            <option value="" disabled selected>Selecione o período</option>
+            <option value="manha">Manhã</option>
+            <option value="tarde">Tarde</option>
+          </select>
+        </div>
+        <div class="form-group" id="grupo-curso">
+          <label class="form-label">Curso <span>*</span></label>
+          <select name="curso" id="curso-select" class="form-select">
+            <option value="" disabled selected>Selecione o curso</option>
+            <option value="fisicas_biologicas">Ciências Físicas e Biológicas</option>
+            <option value="informatica">Informática (Técnico)</option>
+            <option value="economicas_juridicas">Ciências Económicas-Jurídicas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Comentário:  Contactos de Inscrição -->
+      <div class="form-section" style="margin-top: 1rem;">
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label class="form-label">Telefone <span>*</span></label>
+            <input type="tel" name="telefone" placeholder="Ex: 9xx xxx xxx" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" name="whatsapp" placeholder="Ex: 9xx xxx xxx" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gmail / Email <span>*</span></label>
+            <input type="email" name="email" placeholder="exemplo@gmail.com" class="form-input" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Morada <span>*</span></label>
+        <textarea name="morada" placeholder="Digite seu endereço completo" class="form-textarea" rows="3" required></textarea>
+      </div>
+
+      <!-- Comentário:  Upload de Documentos -->
+      <div class="form-section" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+        <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 600;">Upload de Documentos (Obrigatórios para a Matrícula)</h3>
+        <div style="background:#f3f4f6;border-left:4px solid #4C1D95;padding:0.65rem 0.9rem;border-radius:6px;margin-bottom:1.25rem;font-size:0.88rem;color:#374151;">
+          <strong>Formatos aceites:</strong> imagens (JPG, PNG) ou PDF.
+          <strong>Tamanho máximo: 5&nbsp;MB</strong> por ficheiro.
+          Se um ficheiro exceder o limite ser-lhe-á indicado em qual.
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label class="form-label">Fotografia tipo passe <span>*</span></label>
+            <input type="file" name="foto_passe" class="form-input" accept="image/*" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cópia da Cédula / BI <span>*</span></label>
+            <input type="file" name="copia_cedula" class="form-input" accept="image/*,.pdf" required>
+          </div>
+        </div>
+
+        <div class="form-row form-row-2">
+          <div class="form-group" id="grupo-cartao-vacinas">
+            <label class="form-label" id="label-cartao-vacinas">Cartão de Vacinas <span>*</span></label>
+            <input type="file" name="cartao_vacinas" id="input-cartao-vacinas" class="form-input" accept="image/*,.pdf" required>
+            <small id="aviso-vacinas" style="display:none;color:#6b7280;font-size:0.78rem;">Não exigido para maiores de 18 anos.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Atestado Médico <span>*</span></label>
+            <input type="file" name="atestado_medico" class="form-input" accept="image/*,.pdf" required>
+          </div>
+        </div>
+
+        <div class="form-row form-row-2" id="certificado-section">
+          <div class="form-group">
+            <label class="form-label">Certificado (6ª ou 9ª Classe)</label>
+            <input type="file" name="certificado" class="form-input" accept="image/*,.pdf">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Declarações das Classes Anteriores</label>
+            <input type="file" name="declaracoes_anteriores" class="form-input" accept="image/*,.pdf">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-accent btn-full">Inscrever-se</button>
+    </form>
+  </section>
+
+  <!-- Comentário:  Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>MARA E LU</h3>
+          <p>Formando para transformar vidas através da educação de qualidade.</p>
+        </div>
+
+             <div class="footer-nav">
+            <h4>Navegação</h4>
+            <ul>
+              <li><a href="index.html">Início</a></li>
+              <li><a href="sobre.html">Sobre</a></li>
+              <li><a href="cursos.html">Cursos</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-nav">
+            <h4>Informações</h4>
+            <ul>
+              <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-nav">
+            <h4>Redes Sociais</h4>
+            <div class="social-links">
+              <a href="https://www.facebook.com/DPCleonardo/?locale=pt_BR" aria-label="Facebook">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"
+                  />
+                </svg>
+              </a>
+              <a href="https://www.instagram.com/colegio.mara_e_lu?igsh=eHY2Mml1eWlhcnJs" aria-label="Instagram">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                  />
+                </svg>
+              </a>
+              
+              
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© 2026 MARA E LU. Todos os direitos reservados.</p>
+          <div class="footer-bottom-links">
+            <a href="politica-privacidade.html">Política de Privacidade</a>
+            <a href="termos-servico.html">Termos de Serviço</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/storage.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+      const classeSelect = document.querySelector('select[name="classe"]');
+      const certificadoSection = document.getElementById('certificado-section');
+      const periodoSelect = document.getElementById('periodo-select');
+      const cursoSelect = document.getElementById('curso-select');
+      const grupoCurso = document.getElementById('grupo-curso');
+
+      // Classes que requerem apenas turno Tarde (7ª–13ª)
+      const classesSoTarde = ['7', '8', '9', '10', '11', '12', '13'];
+      // Classes que requerem apenas turno Manhã (Iniciação–6ª)
+      const classesSoManha = ['iniciacao', '1', '2', '3', '4', '5', '6'];
+      // Classes que NÃO têm curso (abaixo da 10ª)
+      const semCurso = ['', 'iniciacao', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      // Classes que NÃO mostram certificado/declarações
+      const semCertificado = ['', 'iniciacao', '1', '2', '3', '4', '5', '6'];
+
+      const dataNascimentoInput = document.getElementById('data-nascimento');
+      const idadeExibicao = document.getElementById('idade-exibicao');
+      const idadeValorEl = document.getElementById('idade-valor');
+      const grupoVacinas = document.getElementById('grupo-cartao-vacinas');
+      const inputVacinas = document.getElementById('input-cartao-vacinas');
+      const avisoVacinas = document.getElementById('aviso-vacinas');
+      const labelVacinas = document.getElementById('label-cartao-vacinas');
+
+      // Calcula a idade a partir da data de nascimento
+      function calcularIdade(dataNasc) {
+        if (!dataNasc) return null;
+        const hoje = new Date();
+        const nasc = new Date(dataNasc);
+        let idade = hoje.getFullYear() - nasc.getFullYear();
+        const m = hoje.getMonth() - nasc.getMonth();
+        if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+        return idade;
+      }
+
+      // Actualiza visibilidade do cartão de vacinas com base na idade
+      function atualizarVacinas() {
+        const idade = calcularIdade(dataNascimentoInput.value);
+        if (idade === null) return;
+        // Mostrar idade calculada
+        idadeValorEl.textContent = idade;
+        idadeExibicao.style.display = 'block';
+        // Acima de 10 anos → cartão de vacinas não é obrigatório
+        if (idade > 10) {
+          grupoVacinas.style.opacity = '0.5';
+          inputVacinas.removeAttribute('required');
+          avisoVacinas.style.display = 'block';
+          labelVacinas.innerHTML = 'Cartão de Vacinas <small style="font-weight:400;color:#9ca3af;">(facultativo para >10 anos)</small>';
+        } else {
+          grupoVacinas.style.opacity = '1';
+          inputVacinas.setAttribute('required', 'required');
+          avisoVacinas.style.display = 'none';
+          labelVacinas.innerHTML = 'Cartão de Vacinas <span>*</span>';
+        }
+      }
+
+      dataNascimentoInput.addEventListener('change', atualizarVacinas);
+
+      function atualizarFormulario() {
+        const val = classeSelect.value;
+        const manhaOption = periodoSelect.querySelector('option[value="manha"]');
+        const tardeOption = periodoSelect.querySelector('option[value="tarde"]');
+
+        // 1. Certificado: ocultar para Iniciação até 6ª
+        certificadoSection.style.display = semCertificado.includes(val) ? 'none' : 'grid';
+
+        // 2. Período: Iniciação–6ª = só Manhã | 10ª–13ª = só Tarde
+        if (classesSoManha.includes(val)) {
+          periodoSelect.value = 'manha';
+          if (manhaOption) { manhaOption.disabled = false; manhaOption.hidden = false; }
+          if (tardeOption) { tardeOption.disabled = true; tardeOption.hidden = true; }
+        } else if (classesSoTarde.includes(val)) {
+          periodoSelect.value = 'tarde';
+          if (manhaOption) { manhaOption.disabled = true; manhaOption.hidden = true; }
+          if (tardeOption) { tardeOption.disabled = false; tardeOption.hidden = false; }
+        } else {
+          // 7ª–9ª: ambos disponíveis
+          if (manhaOption) { manhaOption.disabled = false; manhaOption.hidden = false; }
+          if (tardeOption) { tardeOption.disabled = false; tardeOption.hidden = false; }
+          if (periodoSelect.value === 'tarde' && classesSoManha.includes(val)) periodoSelect.value = '';
+          else if (periodoSelect.value === 'manha' && classesSoTarde.includes(val)) periodoSelect.value = '';
+        }
+
+        // 3. Curso: ocultar para classes abaixo da 10ª
+        if (semCurso.includes(val)) {
+          grupoCurso.style.display = 'none';
+          cursoSelect.removeAttribute('required');
+          cursoSelect.value = '';
+        } else {
+          grupoCurso.style.display = 'block';
+          // 4. 13ª Classe: Informática automaticamente
+          if (val === '13') {
+            cursoSelect.value = 'informatica';
+            cursoSelect.disabled = true;
+          } else {
+            cursoSelect.disabled = false;
+            cursoSelect.setAttribute('required', 'required');
+            if (cursoSelect.value === 'informatica' && val !== '13') cursoSelect.value = '';
+          }
+        }
+      }
+
+      atualizarFormulario();
+      classeSelect.addEventListener('change', atualizarFormulario);
+    </script>
+    <!-- ================================================================
+         Sistema de Pop-ups Estilizados — Páginas Públicas
+         Substitui o alert() nativo por modais com design moderno
+    ================================================================ -->
+
+    <!-- HTML do pop-up (um único, reutilizável) -->
+    <div id="popup-overlay" onclick="if(event.target===this)fecharPopup()">
+      <div id="popup-card">
+        <div id="popup-icon"><i id="popup-icon-i" class="fas fa-check"></i></div>
+        <h3 id="popup-titulo"></h3>
+        <p id="popup-mensagem"></p>
+        <div id="popup-codigo"></div>
+        <button id="popup-copy" style="display:none;" onclick="copiarCodigoPopup()">Copiar código</button>
+        <button id="popup-btn" onclick="fecharPopup()">OK</button>
+      </div>
+    </div>
+
+    <script>
+      // Função global para copiar o código exibido no modal
+      function copiarCodigoPopup() {
+        const codigoEl = document.getElementById('popup-codigo');
+        const texto = codigoEl?.textContent?.trim();
+        if (!texto) return;
+        navigator.clipboard.writeText(texto).then(() => {
+          const botao = document.getElementById('popup-copy');
+          botao.textContent = 'Copiado!';
+          setTimeout(() => { botao.textContent = 'Copiar código'; }, 1200);
+        }).catch(() => {
+          alert('Não foi possível copiar. Utilize Ctrl+C.');
+        });
+      }
+
+      // Função global para mostrar pop-up personalizado (substitui alert())
+      function mostrarPopup(tipo, titulo, mensagem, codigo, aoFechar) {
+        const overlay   = document.getElementById('popup-overlay');
+        const icon      = document.getElementById('popup-icon');
+        const iconI     = document.getElementById('popup-icon-i');
+        const tituloEl  = document.getElementById('popup-titulo');
+        const msgEl     = document.getElementById('popup-mensagem');
+        const codigoEl  = document.getElementById('popup-codigo');
+        const btn       = document.getElementById('popup-btn');
+        const copyBtn   = document.getElementById('popup-copy');
+
+        // Limpar classes anteriores
+        icon.className = 'popup-icon';
+        btn.className  = '';
+        copyBtn.style.display = 'none';
+        copyBtn.textContent = 'Copiar código';
+
+        // Configurar ícone e cor por tipo
+        const configs = {
+          sucesso: { icone: 'fa-check',            classe: 'sucesso', btnClasse: '' },
+          erro:    { icone: 'fa-times',             classe: 'erro',    btnClasse: 'btn-erro' },
+          aviso:   { icone: 'fa-exclamation-triangle', classe: 'aviso', btnClasse: 'btn-aviso' },
+          info:    { icone: 'fa-info',              classe: 'info',    btnClasse: '' },
+        };
+        const cfg = configs[tipo] || configs.info;
+        icon.className   = cfg.classe;
+        iconI.className  = 'fas ' + cfg.icone;
+        btn.className    = cfg.btnClasse;
+
+        tituloEl.textContent = titulo;
+        msgEl.textContent    = mensagem;
+
+        // Código de inscrição (opcional)
+        if (codigo) {
+          codigoEl.style.display = 'block';
+          codigoEl.textContent   = codigo;
+          copyBtn.style.display  = 'inline-block';
+        } else {
+          codigoEl.style.display = 'none';
+          copyBtn.style.display  = 'none';
+        }
+
+        // Callback ao fechar
+        window._popupAoFechar = aoFechar || null;
+
+        overlay.style.display = 'flex';
+        btn.focus();
+      }
+
+      function fecharPopup() {
+        document.getElementById('popup-overlay').style.display = 'none';
+        if (typeof window._popupAoFechar === 'function') {
+          window._popupAoFechar();
+          window._popupAoFechar = null;
+        }
+      }
+    </script>
+
+    <script>
+      (function() {
+        const form = document.getElementById('registration-form');
+        if (!form) return;
+
+        // Validação de telefone: deve começar com 9 e ter 9 dígitos (9xx xxx xxx)
+        function validarTelefone(numero) {
+          const limpo = numero.replace(/\s+/g, '');
+          return /^9\d{8}$/.test(limpo);
+        }
+
+        // Limite de tamanho por ficheiro (5 MB)
+        const MAX_FILE_BYTES = 5 * 1024 * 1024;
+        function validarTamanhoFicheiro(input, label) {
+          const f = input && input.files && input.files[0];
+          if (!f) return null;
+          if (f.size > MAX_FILE_BYTES) {
+            const mb = (f.size / 1024 / 1024).toFixed(1);
+            return `${label} tem ${mb} MB. O tamanho máximo permitido por ficheiro é 5 MB.`;
+          }
+          return null;
+        }
+
+        form.addEventListener('submit', async function(e) {
+          // Impede envio automático do formulário. O resto do código faz o próprio processamento.
+          e.preventDefault();
+
+          const telInput = form.querySelector('input[name="telefone"]');
+          const waInput = form.querySelector('input[name="whatsapp"]');
+          const biInput = form.querySelector('input[name="documento"]');
+
+          // Validar telefone obrigatório
+          if (telInput && !validarTelefone(telInput.value)) {
+            mostrarPopup(
+              'aviso',
+              'Telefone inválido',
+              'O número de telefone deve começar com 9 e ter 9 dígitos.\nExemplo: 923 456 789',
+              null,
+              () => telInput.focus()
+            );
+            return;
+          }
+
+          // Validar WhatsApp se preenchido
+          if (waInput && waInput.value.trim() !== '' && !validarTelefone(waInput.value)) {
+            mostrarPopup(
+              'aviso',
+              'WhatsApp inválido',
+              'O número de WhatsApp deve começar com 9 e ter 9 dígitos.\nExemplo: 923 456 789',
+              null,
+              () => waInput.focus()
+            );
+            return;
+          }
+
+          // BI/Documento — apenas verificamos que está preenchido (sem regex)
+          const biValor = biInput ? biInput.value.trim().toUpperCase() : '';
+          if (!biValor) {
+            mostrarPopup(
+              'aviso',
+              'BI obrigatório',
+              'Indique o número do BI ou documento.',
+              null,
+              () => biInput && biInput.focus()
+            );
+            return;
+          }
+
+          // Validar BI duplicado no localStorage
+          const inscricoes = JSON.parse(localStorage.getItem('inscricoes') || '[]');
+          const biExistente = inscricoes.find(i => i.documento && i.documento.toUpperCase() === biValor);
+          if (biExistente) {
+            mostrarPopup(
+              'erro',
+              'BI já registado',
+              'Já existe uma inscrição com o BI/Documento "' + biValor + '". Se precisar de ajuda, contacte a escola.',
+              null,
+              () => biInput.focus()
+            );
+            return;
+          }
+
+          // Validar tamanho dos ficheiros (máx 5 MB cada)
+          const inputsFicheiros = [
+            ['foto_passe', 'A fotografia tipo passe'],
+            ['copia_cedula', 'A cópia da cédula/BI'],
+            ['cartao_vacinas', 'O cartão de vacinas'],
+            ['atestado_medico', 'O atestado médico'],
+            ['certificado', 'O certificado'],
+            ['declaracoes_anteriores', 'As declarações anteriores'],
+          ];
+          for (const [name, label] of inputsFicheiros) {
+            const inp = form.querySelector(`input[name="${name}"]`);
+            const erro = validarTamanhoFicheiro(inp, label);
+            if (erro) {
+              mostrarPopup('aviso', 'Ficheiro demasiado grande', erro, null, () => inp.focus());
+              return;
+            }
+          }
+
+          // função utilitária para converter arquivos em base64 (para exibir no admin)
+          function fileToDataURL(file) {
+            return new Promise((resolve) => {
+              if (!file) return resolve(null);
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(file);
+            });
+          }
+
+          // Gerar ID único e salvar no localStorage
+          const inscId = 'INS' + Date.now().toString(36).toUpperCase().slice(-8);
+          const formData = new FormData(form);
+          const fullData = { id: inscId, dataInscricao: new Date().toLocaleDateString('pt-PT'), estado: 'Pendente' };
+          formData.forEach((value, key) => { if (typeof value === 'string') fullData[key] = value; });
+          if (cursoSelect && cursoSelect.selectedIndex >= 0) {
+            fullData.cursoLabel = cursoSelect.options[cursoSelect.selectedIndex].text;
+          }
+          // Guardar idade calculada
+          if (dataNascimentoInput && dataNascimentoInput.value) {
+            fullData.idade = calcularIdade(dataNascimentoInput.value);
+          }
+
+          // Guardar uploads como data URLs para aparecer no admin (mantém campo/nome para identificação)
+          const fotoPasseFile = form.querySelector('input[name="foto_passe"]').files[0];
+          const cartaoVacinasFile = form.querySelector('input[name="cartao_vacinas"]').files[0];
+          const copiaCedulaFile = form.querySelector('input[name="copia_cedula"]').files[0];
+          const atestadoMedicoFile = form.querySelector('input[name="atestado_medico"]').files[0];
+
+          const arquivos = [];
+          const fotoPasseData = await fileToDataURL(fotoPasseFile);
+          if (fotoPasseData) arquivos.push({ campo: 'foto_passe', nome: fotoPasseFile?.name || 'foto', mime: fotoPasseFile?.type || '', data: fotoPasseData });
+          const cartaoData = await fileToDataURL(cartaoVacinasFile);
+          if (cartaoData) arquivos.push({ campo: 'cartao_vacinas', nome: cartaoVacinasFile?.name || 'cartao', mime: cartaoVacinasFile?.type || '', data: cartaoData });
+          const cedulaData = await fileToDataURL(copiaCedulaFile);
+          if (cedulaData) arquivos.push({ campo: 'copia_cedula', nome: copiaCedulaFile?.name || 'copia', mime: copiaCedulaFile?.type || '', data: cedulaData });
+          const atestadoData = await fileToDataURL(atestadoMedicoFile);
+          if (atestadoData) arquivos.push({ campo: 'atestado_medico', nome: atestadoMedicoFile?.name || 'atestado', mime: atestadoMedicoFile?.type || '', data: atestadoData });
+
+          if (arquivos.length) {
+            fullData.fotos = arquivos;
+          }
+
+          // Desabilita o botão durante o processamento para evitar dupla submissão
+          const btnSubmit = form.querySelector('button[type="submit"]');
+          if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'A guardar…'; }
+
+          try {
+            // Guarda a inscrição usando AppStorage (js/storage.js):
+            //   — Online:  texto no localStorage + completo no SQLite via API
+            //   — Offline: texto no localStorage + completo no IndexedDB
+            // Em ambos os casos os documentos (fotos, PDFs) ficam acessíveis ao admin.
+            const resultado = await AppStorage.salvarInscricao(fullData);
+            console.log('[Inscrição] Guardada com sucesso. Fonte:', resultado.fonte);
+
+            // Mostrar popup de sucesso com o código único de inscrição
+            mostrarPopup(
+              'sucesso',
+              'Inscrição registada!',
+              resultado.fonte === 'offline'
+                ? 'Estás offline — os dados foram guardados localmente e serão sincronizados quando houver ligação.'
+                : 'Guarde o código abaixo para consultar o estado da sua inscrição.',
+              inscId,
+              async () => {
+                // O servidor envia automaticamente uma notificação por email
+                // para a escola assim que recebe a inscrição em /api/inscricoes.
+                form.reset();
+                // Redirecionar para a página de consulta com o código pré-preenchido
+                window.location.href = `consultar-inscricao.html?codigo=${encodeURIComponent(inscId)}`;
+              }
+            );
+          } catch (err) {
+            console.error('Erro ao guardar inscrição:', err);
+            mostrarPopup('erro', 'Erro inesperado', 'Ocorreu um erro ao guardar a inscrição. Por favor tente novamente.');
+          } finally {
+            // Reativa o botão independentemente do resultado
+            if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = 'Inscrever-se'; }
+          }
+        });
+      })();
+    </script>

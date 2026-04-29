@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-mail Marketing - MARA &amp; LU</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/auth-guard.js"></script>
+    <style>
+      body { background:#f3f4f6; font-family:'Inter', sans-serif; margin:0; }
+      .header { background:#4C1D95; color:#fff; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; }
+      .header a { color:#fff; text-decoration:none; font-weight:600; }
+      main { max-width:900px; margin: 1.5rem auto; padding: 0 1rem; }
+      h1 { color:#1f2937; margin-bottom: 0.25rem; }
+      .lead { color:#6b7280; margin-bottom: 1.5rem; }
+      .card { background:#fff; border-radius:10px; padding:1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom:1rem; }
+      label { display:block; font-weight:600; color:#374151; font-size:0.9rem; margin-bottom: 0.35rem; }
+      input[type=text], input[type=email], textarea, select {
+        width:100%; box-sizing:border-box; padding:0.65rem 0.8rem;
+        border:1px solid #d1d5db; border-radius:6px; font-size:1rem; font-family:inherit;
+      }
+      textarea { resize:vertical; min-height:160px; }
+      .form-row { display:grid; grid-template-columns: 1fr 1fr; gap:1rem; }
+      .help { color:#6b7280; font-size:0.8rem; margin-top:4px; }
+      .btn {
+        background:#4C1D95; color:#fff; border:0; padding:0.65rem 1.2rem; border-radius:6px;
+        font-weight:600; cursor:pointer;
+      }
+      .btn[disabled] { opacity:0.6; cursor:not-allowed; }
+      .btn-secondary { background:#fff; color:#4C1D95; border:1px solid #d1d5db; }
+      .resultados { max-height:280px; overflow:auto; font-size:0.9rem; }
+      .resultados li { padding:6px 0; border-bottom:1px solid #f3f4f6; }
+      .ok { color:#059669; }
+      .ko { color:#dc2626; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="Dashboard2.html"><i class="fas fa-arrow-left"></i> Voltar ao Dashboard</a>
+        <span>E-mail Marketing</span>
+        <a href="#" onclick="logout(); return false;">Sair</a>
+    </header>
+
+    <main>
+        <h1>E-mail Marketing</h1>
+        <p class="lead">Envie campanhas para os candidatos inscritos. Cada destinatário recebe a mensagem individualmente (não em cópia visível).</p>
+
+        <div class="card">
+          <label for="origem">Destinatários</label>
+          <select id="origem">
+            <option value="todos">Todos os candidatos com email válido</option>
+            <option value="estado:Pendente">Apenas candidatos pendentes</option>
+            <option value="estado:Aprovado">Apenas candidatos aprovados</option>
+            <option value="estado:Reprovado">Apenas candidatos reprovados</option>
+            <option value="manual">Indicar lista manualmente</option>
+          </select>
+          <p class="help" id="contador-destinatarios">A calcular...</p>
+
+          <div id="bloco-manual" style="display:none; margin-top:1rem;">
+            <label for="emails-manual">Emails (separados por vírgula, ponto-e-vírgula ou nova linha)</label>
+            <textarea id="emails-manual" placeholder="exemplo1@gmail.com, exemplo2@gmail.com&#10;exemplo3@gmail.com"></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <label for="assunto">Assunto</label>
+          <input type="text" id="assunto" placeholder="Ex: Novidades do Colégio Mara &amp; Lú">
+
+          <label for="mensagem" style="margin-top:1rem;">Mensagem (texto simples)</label>
+          <textarea id="mensagem" placeholder="Escreva a sua mensagem aqui..."></textarea>
+          <p class="help">Aceita parágrafos. Será enviada via servidor (sem precisar de SMTP).</p>
+        </div>
+
+        <div class="card" style="display:flex; gap:0.5rem; align-items:center;">
+          <button class="btn"          id="btn-enviar">Enviar agora</button>
+          <button class="btn btn-secondary" type="button" onclick="window.location.href='Dashboard2.html'">Cancelar</button>
+          <span id="estado-envio" style="margin-left:auto; color:#6b7280; font-size:0.9rem;"></span>
+        </div>
+
+        <div class="card" id="card-resultados" style="display:none;">
+          <h3 style="margin:0 0 0.5rem;">Resultados</h3>
+          <ul class="resultados" id="lista-resultados"></ul>
+        </div>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script>
+      const origemSel = document.getElementById('origem');
+      const blocoManual = document.getElementById('bloco-manual');
+      const contador = document.getElementById('contador-destinatarios');
+      const emailsManualEl = document.getElementById('emails-manual');
+      const estadoEl = document.getElementById('estado-envio');
+      const btnEnviar = document.getElementById('btn-enviar');
+
+      let inscricoesCache = [];
+
+      async function carregarInscricoes() {
+        try {
+          const r = await fetch('/api/inscricoes', { credentials:'include' });
+          if (r.ok) inscricoesCache = await r.json();
+        } catch (_) { inscricoesCache = []; }
+        actualizarContador();
+      }
+
+      function emailValido(e) { return typeof e === 'string' && /.+@.+\..+/.test(e); }
+
+      function obterDestinatarios() {
+        const opt = origemSel.value;
+        if (opt === 'manual') {
+          return (emailsManualEl.value || '')
+            .split(/[\s,;]+/).map(s => s.trim()).filter(emailValido);
+        }
+        let lista = inscricoesCache.filter(i => emailValido(i.email));
+        if (opt.startsWith('estado:')) {
+          const est = opt.split(':')[1];
+          lista = lista.filter(i => (i.estado || 'Pendente') === est);
+        }
+        // Únicos
+        return [...new Set(lista.map(i => i.email.trim().toLowerCase()))];
+      }
+
+      function actualizarContador() {
+        const dest = obterDestinatarios();
+        contador.textContent = `${dest.length} destinatário(s) a receber.`;
+      }
+
+      origemSel.addEventListener('change', () => {
+        blocoManual.style.display = origemSel.value === 'manual' ? 'block' : 'none';
+        actualizarContador();
+      });
+      emailsManualEl.addEventListener('input', actualizarContador);
+
+      btnEnviar.addEventListener('click', async () => {
+        const assunto = document.getElementById('assunto').value.trim();
+        const mensagem = document.getElementById('mensagem').value.trim();
+        if (!assunto || !mensagem) {
+          alert('Preencha o assunto e a mensagem antes de enviar.');
+          return;
+        }
+        const destinatarios = obterDestinatarios();
+        if (destinatarios.length === 0) {
+          alert('Sem destinatários válidos.');
+          return;
+        }
+        if (!confirm(`Enviar para ${destinatarios.length} destinatário(s)?`)) return;
+
+        btnEnviar.disabled = true;
+        estadoEl.textContent = 'A enviar...';
+
+        // Converter texto em HTML simples (parágrafos)
+        const html = mensagem.split(/\n\n+/).map(p =>
+          `<p>${p.replace(/\n/g, '<br>').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</p>`
+        ).join('');
+
+        try {
+          const r = await fetch('/send-email-batch', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipients: destinatarios, subject: assunto, text: mensagem, html })
+          });
+          if (r.status === 401) { window.location.href = 'entrar.html'; return; }
+          const j = await r.json().catch(() => ({}));
+          const card = document.getElementById('card-resultados');
+          const lista = document.getElementById('lista-resultados');
+          card.style.display = 'block';
+          lista.innerHTML = (j.results || []).map(rs =>
+            `<li class="${rs.ok ? 'ok' : 'ko'}">${rs.ok ? '✓' : '✗'} ${rs.to}${rs.error ? ' — ' + rs.error : ''}</li>`
+          ).join('');
+          const okCount = (j.results || []).filter(r => r.ok).length;
+          estadoEl.textContent = `Concluído: ${okCount}/${destinatarios.length} enviados.`;
+        } catch (e) {
+          estadoEl.textContent = 'Erro: ' + e.message;
+        } finally {
+          btnEnviar.disabled = false;
+        }
+      });
+
+      carregarInscricoes();
+    </script>
+</body>
+</html>

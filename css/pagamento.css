@@ -1,0 +1,487 @@
+/* ============================================================
+   css/pagamento.css — Estilos da página de Simulação de Pagamento
+   ------------------------------------------------------------
+   Apenas CSS3 puro. Mantém a paleta do site (roxo escuro #4C1D95
+   + dourado #D4A047) e segue o estilo dos cartões de inscrição.
+   ============================================================ */
+
+/* ── Cabeçalho da página ─────────────────────────────────── */
+.pagamento-header {
+    background: linear-gradient(135deg, #1e0a4a 0%, #4C1D95 100%);
+    color: #fff;
+    padding: 50px 20px 60px;
+    text-align: center;
+}
+.pagamento-header h1 {
+    font-size: 2.2rem;
+    margin: 0 0 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.pagamento-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+/* ── Container principal ─────────────────────────────────── */
+.pagamento-container {
+    max-width: 920px;
+    margin: -40px auto 60px;
+    padding: 0 20px;
+    position: relative;
+}
+
+/* ── Cartões base ────────────────────────────────────────── */
+.pagamento-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(30, 10, 74, 0.12);
+    padding: 32px;
+    margin-bottom: 24px;
+}
+.pagamento-card h2 {
+    margin: 0 0 18px;
+    font-size: 1.25rem;
+    color: #1e0a4a;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.pagamento-card h2 i { color: #D4A047; }
+
+/* ── Resumo da inscrição ─────────────────────────────────── */
+.resumo-inscricao {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+    border-bottom: 1px dashed #e5e7eb;
+}
+.resumo-item .lbl {
+    display: block;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+}
+.resumo-item .val {
+    font-size: 0.98rem;
+    color: #1e0a4a;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* Caixa do valor a pagar (destaque) */
+.valor-pagar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 18px 22px;
+}
+.valor-pagar .label-valor {
+    font-size: 0.85rem;
+    color: #78350f;
+    font-weight: 600;
+}
+.valor-pagar .montante {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1e0a4a;
+    letter-spacing: -0.5px;
+}
+.valor-pagar .montante small {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* ── Selector de método de pagamento ─────────────────────── */
+.metodos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+.metodo-card {
+    cursor: pointer;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    transition: all 0.18s;
+    background: #fff;
+}
+.metodo-card:hover {
+    border-color: #4C1D95;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(76, 29, 149, 0.12);
+}
+.metodo-card.selected {
+    border-color: #4C1D95;
+    background: linear-gradient(135deg, #f5f0ff 0%, #ede9fe 100%);
+    box-shadow: 0 6px 18px rgba(76, 29, 149, 0.18);
+}
+.metodo-card .icone {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 10px;
+    border-radius: 12px;
+    background: #ede9fe;
+    color: #4C1D95;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+.metodo-card.selected .icone {
+    background: #4C1D95;
+    color: #fff;
+}
+.metodo-card h4 {
+    margin: 0 0 4px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e0a4a;
+}
+.metodo-card p {
+    margin: 0;
+    font-size: 0.74rem;
+    color: #6b7280;
+}
+
+/* ── Formulários por método ──────────────────────────────── */
+.form-metodo { display: none; margin-top: 22px; }
+.form-metodo.active { display: block; }
+
+.form-grupo { margin-bottom: 16px; }
+.form-grupo label {
+    display: block;
+    font-size: 0.85rem;
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.form-grupo input,
+.form-grupo select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+.form-grupo input:focus,
+.form-grupo select:focus {
+    outline: none;
+    border-color: #4C1D95;
+    box-shadow: 0 0 0 3px rgba(76, 29, 149, 0.1);
+}
+.form-grupo .ajuda {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 4px;
+    display: block;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+/* Linha de transferência: dados bancários estáticos para copiar */
+.dados-banco {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 18px;
+}
+.dados-banco .linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 0.9rem;
+    border-bottom: 1px dashed #e5e7eb;
+}
+.dados-banco .linha:last-child { border-bottom: none; }
+.dados-banco .lbl-banco {
+    color: #6b7280;
+    font-weight: 500;
+}
+.dados-banco .val-banco {
+    color: #1e0a4a;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+}
+.dados-banco .copiar {
+    background: #ede9fe;
+    color: #4C1D95;
+    border: none;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.dados-banco .copiar:hover { background: #ddd6fe; }
+
+/* Caixa de referência multicaixa (gerada após escolher) */
+.referencia-mcx {
+    background: linear-gradient(135deg, #1e0a4a 0%, #4C1D95 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+.referencia-mcx .et {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    opacity: 0.85;
+    letter-spacing: 1px;
+}
+.referencia-mcx .num {
+    font-family: 'Courier New', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 6px 0;
+    letter-spacing: 2px;
+}
+
+/* ── Botão principal ─────────────────────────────────────── */
+.btn-pagar {
+    width: 100%;
+    background: linear-gradient(135deg, #D4A047 0%, #b8862a 100%);
+    color: #fff;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+}
+.btn-pagar:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(212, 160, 71, 0.4);
+}
+.btn-pagar:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+}
+
+/* ── Spinner de processamento ────────────────────────────── */
+.processando {
+    display: none;
+    text-align: center;
+    padding: 24px;
+}
+.processando .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #ede9fe;
+    border-top-color: #4C1D95;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: girar 0.9s linear infinite;
+}
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+.processando p {
+    color: #4C1D95;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ── Recibo final ────────────────────────────────────────── */
+.recibo {
+    display: none;
+    text-align: center;
+}
+.recibo .check-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-size: 38px;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+.recibo h2 {
+    color: #059669;
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    justify-content: center;
+}
+.recibo .sub {
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+.recibo-detalhes {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    margin-bottom: 22px;
+}
+.recibo-detalhes .linha {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #e5e7eb;
+    font-size: 0.92rem;
+}
+.recibo-detalhes .linha:last-child { border-bottom: none; }
+.recibo-detalhes .linha strong { color: #1e0a4a; }
+.recibo-acoes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.recibo-acoes button {
+    border: 1.5px solid #4C1D95;
+    background: #fff;
+    color: #4C1D95;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+}
+.recibo-acoes button.primary {
+    background: #4C1D95;
+    color: #fff;
+}
+.recibo-acoes button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 29, 149, 0.18);
+}
+
+/* ── Estado de pagamento (quando já pago ou bloqueado) ───── */
+.aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+.aviso .ico {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+.aviso.success { background: #d1fae5; color: #065f46; }
+.aviso.success .ico { background: #10b981; color: #fff; }
+.aviso.warn { background: #fef3c7; color: #92400e; }
+.aviso.warn .ico { background: #f59e0b; color: #fff; }
+.aviso.error { background: #fee2e2; color: #991b1b; }
+.aviso.error .ico { background: #ef4444; color: #fff; }
+.aviso.info { background: #dbeafe; color: #1e40af; }
+.aviso.info .ico { background: #3b82f6; color: #fff; }
+.aviso b { display: block; margin-bottom: 2px; font-size: 0.95rem; }
+
+/* ── Pesquisa de inscrição (quando não vem ?codigo na URL) ─ */
+.pesquisa-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.pesquisa-form input {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+}
+.pesquisa-form input:focus {
+    outline: none;
+    border-color: #4C1D95;
+}
+.pesquisa-form button {
+    background: #4C1D95;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 22px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ── Responsivo ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .pagamento-card { padding: 22px 18px; }
+    .pagamento-header h1 { font-size: 1.65rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .valor-pagar { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .valor-pagar .montante { font-size: 1.5rem; }
+}
+
+/* ==========================================================
+   QR de pagamento (Multicaixa Express)
+   ========================================================== */
+.qr-pagamento {
+    margin-top: 22px;
+    padding: 1.4rem 1rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    text-align: center;
+}
+.qr-pagamento .qr-titulo {
+    font-size: 0.95rem;
+    color: #374151;
+    margin-bottom: 0.85rem;
+    font-weight: 600;
+}
+.qr-pagamento .qr-imagem-wrap {
+    display: inline-block;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(76, 29, 149, 0.12);
+}
+.qr-pagamento .qr-imagem-wrap img {
+    display: block;
+    width: 240px;
+    height: 240px;
+    max-width: 100%;
+}
+.qr-pagamento .qr-beneficiario {
+    margin-top: 0.85rem;
+    font-weight: 700;
+    color: #4C1D95;
+    font-size: 1.05rem;
+}
+
+@media (max-width: 480px) {
+    .qr-pagamento .qr-imagem-wrap img { width: 200px; height: 200px; }
+}

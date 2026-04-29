@@ -1,0 +1,82 @@
+/* ============================================================
+   css/vagas.css — Página de Gestão de Vagas (Admin)
+   ------------------------------------------------------------
+   Estiliza a página onde as vagas disponíveis por classe e
+   período são geridas pelo administrador. Inclui cartões de
+   resumo com contagens e a tabela de vagas.
+   ============================================================ */
+
+
+/* ── VARIÁVEIS E LAYOUT BASE ───────────────────────────────── */
+:root { --color-primary: #4C1D95; --color-bg: #f8f9fc; }
+
+body { background-color: var(--color-bg); font-family: 'Inter', sans-serif; }
+
+/* Sidebar fixa */
+.sidebar { width: 260px; background: white; border-right: 1px solid #e5e7eb; height: 100vh; position: fixed; z-index: 50; }
+
+/* Área principal à direita da sidebar */
+main { margin-left: 260px; width: calc(100% - 260px); min-height: 100vh; }
+
+
+/* ── NAVEGAÇÃO LATERAL ─────────────────────────────────────── */
+.nav-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; color: #4b5563; border-radius: 0.5rem; transition: all 0.2s; }
+.nav-item:hover  { background: #f9fafb; color: var(--color-primary); }
+.nav-item.active { background: #f3f4f6; color: var(--color-primary); font-weight: 600; }
+.submenu       { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; padding-left: 1.5rem; }
+.submenu.open  { max-height: 400px; }
+.rotate-icon        { transition: transform 0.3s; }
+.rotate-icon.active { transform: rotate(180deg); }
+
+
+/* ── TABELA DE VAGAS ───────────────────────────────────────── */
+.admin-table                 { width: 100%; text-align: left; border-collapse: collapse; }
+.admin-table thead           { background-color: #1f2937; color: white; text-transform: uppercase; font-size: 0.75rem; }
+.admin-table thead tr:hover  { background-color: #1f2937 !important; }
+.admin-table th              { padding: 1rem; border: none; }
+.admin-table td              { padding: 1rem; border-bottom: 1px solid #e5e7eb; }
+.admin-table tbody tr        { transition: background-color 0.2s; }
+.admin-table tbody tr:hover  { background-color: #f9fafb; cursor: default; }
+
+
+/* ── CARTÃO DE ESTATÍSTICA ─────────────────────────────────── */
+/* Cartões coloridos que mostram totais de vagas no topo da página */
+.stat-card { border-radius: 0.5rem; padding: 1.5rem; color: white; }
+
+/* Animação da engrenagem de configurações */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.gear-spin { display:inline-block; animation: spin 2s linear infinite; }
+
+
+/* ── UTILITÁRIOS CSS ───────────────────────────────────────── */
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.gap-6 { gap: 1.5rem; } .mb-8 { margin-bottom: 2rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.font-bold { font-weight: 700; } .text-gray-800 { color: #1f2937; }
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.opacity-50 { opacity: 0.5; } .opacity-80 { opacity: 0.8; }
+.mb-2 { margin-bottom: 0.5rem; }
+.flex { display: flex; } .flex-col { flex-direction: column; }
+.md\:flex-row { flex-direction: row; } .gap-4 { gap: 1rem; }
+.flex-1 { flex: 1 1 0%; } .p-2 { padding: 0.5rem; }
+.border { border: 1px solid #e5e7eb; }
+.rounded { border-radius: 0.25rem; } .w-full { width: 100%; }
+.bg-yellow-500 { background-color: #eab308; }
+.text-white { color: white; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.w-48 { width: 12rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.overflow-x-auto { overflow-x: auto; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.bg-red-500 { background-color: #ef4444; }
+.mr-1 { margin-right: 0.25rem; }
+
+
+/* ── ANIMAÇÃO DOS MODAIS ───────────────────────────────────── */
+@keyframes modalSlideIn { from { transform:translateY(20px) scale(0.97); opacity:0 } to { transform:translateY(0) scale(1); opacity:1 } }

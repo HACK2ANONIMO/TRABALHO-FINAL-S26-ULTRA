@@ -1,0 +1,39 @@
+/* ============================================================
+   css/cursos.css — Página pública de Cursos
+   ------------------------------------------------------------
+   Estiliza a secção de cursos visível ao público no site
+   principal. Inclui fundo com imagem e cartões de curso.
+   ============================================================ */
+
+
+/* ── SECÇÃO PRINCIPAL DE CURSOS ────────────────────────────── */
+/* Fundo com gradiente branco semi-transparente sobre imagem,
+   criando um efeito de "véu" que mantém o texto legível. */
+.courses-section {
+    /* Camada branca a 90% de opacidade sobre a imagem de fundo */
+    background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+                      url('../images/hero-bg.jpg'); /* Imagem de fundo da secção */
+
+    background-size: cover;          /* A imagem cobre toda a secção */
+    background-position: center;     /* Centra a imagem */
+    background-attachment: fixed;    /* Efeito parallax: imagem fixa ao rolar */
+    padding: 60px 0;
+    min-height: 400px;
+}
+
+
+/* ── CARTÃO DE CURSO ───────────────────────────────────────── */
+/* Cada curso é apresentado num cartão branco com sombra.
+   Ao passar o rato, o cartão sobe ligeiramente (efeito hover). */
+.course-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease; /* Transição suave do efeito hover */
+}
+
+/* Efeito de elevação ao passar o rato */
+.course-card:hover {
+    transform: translateY(-5px); /* Sobe 5px */
+}

@@ -1,0 +1,48 @@
+/* ============================================================
+   css/politica-privacidade.css — Página de Política de Privacidade
+   ------------------------------------------------------------
+   Layout simples e legível para documentos de texto longo.
+   A classe .policy-page centraliza e limita a largura do
+   conteúdo para facilitar a leitura em ecrãs largos.
+   ============================================================ */
+
+
+/* ── CONTENTOR PRINCIPAL DA PÁGINA ────────────────────────── */
+/* Centraliza o conteúdo e limita a 800px para melhor leitura */
+.policy-page {
+    max-width: 800px;
+    margin: 60px auto;          /* Centrado horizontalmente com espaço acima */
+    padding: 0 24px 60px;       /* Margens laterais e espaço em baixo */
+    font-family: 'Inter', sans-serif;
+}
+
+
+/* ── TÍTULOS ───────────────────────────────────────────────── */
+/* Título principal em roxo da marca */
+.policy-page h1 { color: #4C1D95; font-size: 2rem; margin-bottom: 8px; }
+
+/* Subtítulo (data de actualização, etc.) */
+.policy-page .subtitle { color: #6b7280; margin-bottom: 32px; font-size: 0.9rem; }
+
+/* Títulos de secção */
+.policy-page h2 { color: #1e293b; font-size: 1.2rem; margin: 28px 0 10px; }
+
+
+/* ── CORPO DO TEXTO ────────────────────────────────────────── */
+/* Parágrafos e itens de lista com espaçamento confortável */
+.policy-page p,
+.policy-page li { color: #374151; line-height: 1.8; font-size: 0.97rem; }
+
+.policy-page ul { padding-left: 1.5rem; margin: 8px 0; }
+.policy-page li { margin-bottom: 4px; }
+
+
+/* ── DIVISOR ───────────────────────────────────────────────── */
+/* Linha fina para separar secções */
+.policy-divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+
+
+/* ── LINK DE RETORNO ───────────────────────────────────────── */
+/* Botão-link "← Voltar" no topo da página */
+.back-link { display: inline-block; margin-bottom: 24px; color: #4C1D95; text-decoration: none; font-weight: 600; }
+.back-link:hover { text-decoration: underline; }

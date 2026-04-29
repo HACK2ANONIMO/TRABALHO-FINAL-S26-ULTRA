@@ -1,0 +1,395 @@
+/* ============================================================
+   css/Dashboard2.css — Estilos do painel de administração
+   ------------------------------------------------------------
+   Contém:
+     1. Variáveis CSS globais (cores e fundo)
+     2. Layout principal (sidebar + área de conteúdo)
+     3. Navegação lateral (nav-items, submenus, ícones)
+     4. Cartões de estatísticas (stat-cards)
+     5. Tabela administrativa
+     6. Badges de estado
+     7. Utilitários CSS (substitutos do Tailwind)
+     8. Sistema de Modais unificado
+     9. Modal de Notificações
+    10. Toasts (notificações emergentes)
+    11. Indicador "Ao Vivo"
+   ============================================================ */
+
+
+/* ── 1. VARIÁVEIS GLOBAIS ──────────────────────────────────── */
+:root {
+    --color-primary: #4C1D95; /* Roxo principal da marca */
+    --color-bg:      #f8f9fc; /* Fundo cinzento muito claro */
+}
+
+
+/* ── 2. LAYOUT PRINCIPAL ───────────────────────────────────── */
+
+/* Corpo: flex horizontal para sidebar + conteúdo lado a lado */
+body { background-color: var(--color-bg); font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
+
+/* Coluna lateral fixa com navegação admin */
+.sidebar { width: 260px; background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+
+/* Área de conteúdo principal ocupa o espaço restante */
+.main-content { flex: 1; display: flex; flex-direction: column; }
+
+/* Cabeçalho roxo no topo da área de conteúdo */
+.header-admin { background-color: #4C1D95; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
+/* Espaçamento interno da área de conteúdo */
+.container-padding { padding: 2rem; }
+
+
+/* ── 3. NAVEGAÇÃO LATERAL ──────────────────────────────────── */
+
+/* Item de menu: flex horizontal com ícone + texto */
+.nav-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; color: #4b5563; border-radius: 0.5rem; transition: all 0.2s; border: none; background: transparent; cursor: pointer; text-align: left; }
+
+/* Destaque ao passar o rato */
+.nav-item:hover { background: #f9fafb; color: var(--color-primary); }
+
+/* Item activo (página actual) */
+.nav-item.active { background: #f3f4f6; color: var(--color-primary); font-weight: 600; }
+
+/* Submenu colapsável — max-height animada entre 0 e 200px */
+.submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; padding-left: 1.5rem; }
+.submenu.open { max-height: 200px; } /* Estado expandido */
+
+/* Seta de expansão do submenu — roda 180° quando aberto */
+.rotate-icon { transition: transform 0.3s; }
+.rotate-icon.active { transform: rotate(180deg); }
+
+
+/* ── 4. CARTÕES DE ESTATÍSTICAS ────────────────────────────── */
+
+/* Grelha responsiva: 1 col → 2 col → 4 col conforme o ecrã */
+.stats-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+@media (min-width: 768px)  { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Cartão base com gradiente e sombra */
+.stat-card { border-radius: 0.5rem; padding: 1.5rem; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; justify-content: space-between; }
+
+/* Variantes de cor dos cartões */
+.stat-card.purple { background: linear-gradient(135deg, #4C1D95 0%, #3b0764 100%); }
+.stat-card.indigo  { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
+.stat-card.rose    { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); }
+.stat-card.blue    { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+
+/* Barra de progresso dentro dos cartões */
+.progress-bar  { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 1rem 0 0.5rem; }
+.progress-fill { height: 100%; background: white; border-radius: 2px; transition: width 0.5s ease; }
+
+
+/* ── 5. TABELA ADMINISTRATIVA ──────────────────────────────── */
+.table-container { background: white; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+.admin-table     { width: 100%; text-align: left; border-collapse: collapse; }
+.admin-table thead tr  { border-bottom: 1px solid #e5e7eb; }
+.admin-table th        { padding-bottom: 0.75rem; font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; }
+.admin-table td        { padding: 1rem 0; }
+
+
+/* ── 6. BADGES DE ESTADO ───────────────────────────────────── */
+/* Pequena etiqueta colorida que mostra o estado de uma inscrição */
+.badge          { padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+.badge-pending  { background-color: #fef9c3; color: #a16207; } /* Pendente (amarelo) */
+.badge-approved { background-color: #dcfce7; color: #15803d; } /* Aprovado (verde) */
+
+
+/* ── 7. UTILITÁRIOS CSS (substitutos do Tailwind) ──────────── */
+/* Classes de conveniência para layout e tipografia, evitando
+   dependência total do Tailwind CDN em produção. */
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.gap-6 { gap: 1.5rem; }
+.lg\:col-span-2 { grid-column: span 2 / span 2; }
+.bg-white { background-color: white; }
+.p-6 { padding: 1.5rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.border { border: 1px solid #e5e7eb; }
+.font-bold { font-weight: 700; }
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-4 { gap: 1rem; }
+.mb-8 { margin-bottom: 2rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.text-gray-800 { color: #1f2937; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-gray-400 { color: #9ca3af; }
+.text-gray-600 { color: #4b5563; }
+.justify-between { justify-content: space-between; }
+.text-purple-600 { color: #7c3aed; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.font-medium { font-weight: 500; }
+.text-right { text-align: right; }
+.bg-green-600 { background-color: #16a34a; }
+.text-white { color: white; }
+.w-6 { width: 1.5rem; }
+.h-6 { height: 1.5rem; }
+.rounded { border-radius: 0.25rem; }
+
+
+/* ── 8. SISTEMA DE MODAIS ──────────────────────────────────── */
+/* Todos os modais (configurações, confirmação, detalhes)
+   partilham este conjunto de classes para consistência visual. */
+
+/* Fundo escuro com desfoque atrás do modal */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10, 5, 30, 0.55);
+    backdrop-filter: blur(3px);
+    align-items: center; justify-content: center;
+    z-index: 70; /* Acima de todo o conteúdo */
+}
+
+/* Cartão branco central do modal com animação de entrada */
+.modal-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    width: 380px; max-width: 92%;
+    box-shadow: 0 24px 60px rgba(10, 5, 40, 0.25);
+    animation: modalSlideIn 0.22s cubic-bezier(.16,1,.3,1);
+}
+
+/* Animação de entrada: sobe suavemente e faz scale */
+@keyframes modalSlideIn {
+    from { transform: translateY(20px) scale(0.97); opacity: 0; }
+    to   { transform: translateY(0) scale(1);       opacity: 1; }
+}
+
+/* Cabeçalho do modal com linha separadora */
+.modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; padding-bottom: 14px;
+    border-bottom: 1px solid #f0eeff;
+}
+.modal-header h4 {
+    margin: 0; font-size: 1.1rem; font-weight: 700;
+    color: #1e0a4a; display: flex; align-items: center; gap: 8px;
+}
+
+/* Ícone quadrado no cabeçalho do modal */
+.modal-header h4 .modal-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #4C1D95, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px;
+}
+
+/* Botão X para fechar o modal */
+.modal-close-btn {
+    background: #f3f4f6; border: none; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #6b7280; font-size: 16px; transition: all 0.15s;
+}
+.modal-close-btn:hover { background: #fee2e2; color: #ef4444; }
+
+/* Modal de configurações (roda dentada no canto direito) */
+#modal-config { display:none; position:fixed; inset:0; background:rgba(10,5,30,0.55); backdrop-filter:blur(3px); align-items:center; justify-content:center; z-index:70; }
+
+/* Cartão do modal de configurações */
+.modal-config-card {
+    background: #fff; border-radius: 16px;
+    padding: 28px; width: 360px; max-width: 92%;
+    box-shadow: 0 24px 60px rgba(10,5,40,0.28);
+    animation: modalSlideIn 0.22s cubic-bezier(.16,1,.3,1);
+}
+
+/* Subtítulo dentro do modal de configurações */
+.modal-config-subtitle { font-size: 0.82rem; color: #6b7280; margin: 0 0 20px; }
+
+/* Lista vertical de botões de acção no modal de configurações */
+.modal-config-actions-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+
+/* Botão de acção genérico dentro do modal */
+.config-action-btn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    border: 1.5px solid #e5e7eb; background: #fff;
+    cursor: pointer; font-size: 0.92rem; font-weight: 600;
+    color: #1e0a4a; transition: all 0.15s; text-align: left; width: 100%;
+}
+.config-action-btn:hover { border-color: #4C1D95; background: #f5f0ff; }
+
+/* Ícone quadrado dentro do botão de acção */
+.config-action-btn .btn-ico {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+}
+
+/* Variantes de cor dos botões de acção */
+.config-action-btn.btn-site   .btn-ico { background: #ede9fe; color: #4C1D95; }       /* Roxo (site público) */
+.config-action-btn.btn-logout .btn-ico { background: #fee2e2; color: #dc2626; }       /* Vermelho (sair) */
+.config-action-btn.btn-logout { border-color: #fca5a5; color: #dc2626; }
+.config-action-btn.btn-logout:hover { background: #fff1f1; border-color: #ef4444; }
+
+/* Rodapé do modal de configurações com informação da versão */
+.modal-config-footer {
+    margin-top: 20px; padding-top: 14px;
+    border-top: 1px solid #f0eeff;
+    display: flex; justify-content: flex-end;
+}
+
+/* Botões utilitários reutilizáveis nos modais */
+.btn-ghost   { background:#f3f4f6; border:1.5px solid #e5e7eb; padding:9px 16px; border-radius:9px; cursor:pointer; font-weight:600; color:#374151; transition:all 0.15s; }
+.btn-ghost:hover   { background:#e5e7eb; }
+.btn-danger  { background:#ef4444; color:white; border:none; padding:9px 16px; border-radius:9px; cursor:pointer; font-weight:600; transition:all 0.15s; }
+.btn-danger:hover  { background:#dc2626; }
+.btn-primary { background: linear-gradient(135deg,#4C1D95,#7c3aed); color:white; border:none; padding:9px 16px; border-radius:9px; cursor:pointer; font-weight:600; transition:all 0.15s; }
+.btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
+
+
+/* ── 9. MODAL DE NOTIFICAÇÕES ──────────────────────────────── */
+
+/* Overlay do painel de notificações (z-index maior que outros modais) */
+#modal-notifs {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,5,30,0.55); backdrop-filter: blur(3px);
+    align-items: center; justify-content: center; z-index: 75;
+}
+
+/* Cartão do painel de notificações com scroll interno */
+.notif-card {
+    background: #fff; border-radius: 16px;
+    width: 420px; max-width: 94%; max-height: 78vh;
+    box-shadow: 0 24px 60px rgba(10,5,40,0.28);
+    display: flex; flex-direction: column;
+    animation: modalSlideIn 0.22s cubic-bezier(.16,1,.3,1);
+    overflow: hidden;
+}
+
+/* Cabeçalho roxo do painel de notificações */
+.notif-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 14px; border-bottom: 1px solid #f0eeff;
+    background: linear-gradient(135deg,#4C1D95,#7c3aed);
+    color: white;
+}
+.notif-header strong { font-size: 1rem; color: white; display:flex; align-items:center; gap:7px; }
+
+/* Área de scroll com a lista de notificações */
+.notif-body { overflow-y: auto; flex: 1; padding: 6px 0; }
+
+/* Item individual de notificação */
+.notif-item {
+    padding: 12px 20px; border-bottom: 1px solid #f9f7ff;
+    display: flex; align-items: flex-start; gap: 12px; transition: background 0.12s;
+}
+.notif-item.nao-lida { background: #faf8ff; border-left: 3px solid #7c3aed; } /* Não lida: borda roxa */
+.notif-item:hover    { background: #f3f0ff; }
+
+/* Ponto colorido indicador do tipo de notificação */
+.notif-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink:0; margin-top:5px; }
+.notif-dot.success { background: #22c55e; box-shadow: 0 0 0 3px #dcfce7; } /* Verde */
+.notif-dot.info    { background: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; } /* Azul */
+.notif-dot.error   { background: #ef4444; box-shadow: 0 0 0 3px #fee2e2; } /* Vermelho */
+.notif-dot.warning { background: #f59e0b; box-shadow: 0 0 0 3px #fef9c3; } /* Amarelo */
+
+/* Textos do item de notificação */
+.notif-item-msg  { font-size: 0.87rem; color: #1f2937; font-weight: 500; }
+.notif-item-sub  { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+.notif-item-date { font-size: 0.72rem; color: #9ca3af; margin-top: 3px; }
+
+/* Rodapé com botão "Marcar todas como lidas" */
+.notif-footer {
+    padding: 12px 20px; border-top: 1px solid #f0eeff;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* Badge do contador de notificações com animação de pulso */
+@keyframes badgePulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.25); }
+}
+.badge-pulse { animation: badgePulse 0.9s ease-in-out infinite; }
+
+/* Animação da engrenagem de configurações */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.gear-spin { display:inline-block; animation: spin 3s linear infinite; }
+
+
+/* ── 10. TOASTS (NOTIFICAÇÕES EMERGENTES) ──────────────────── */
+/* Aparecem no canto inferior direito quando há nova inscrição
+   ou outra acção que o utilizador deve notar. */
+
+/* Contentor fixo no canto inferior direito */
+#toast-container {
+    position: fixed; bottom: 24px; right: 24px;
+    display: flex; flex-direction: column-reverse; gap: 10px;
+    z-index: 9999; pointer-events: none; /* Não bloqueia cliques abaixo */
+}
+
+/* Toast individual */
+.toast {
+    pointer-events: all; /* Os toasts em si são clicáveis */
+    display: flex; align-items: flex-start; gap: 12px;
+    background: #fff; border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(10,5,40,0.18);
+    min-width: 280px; max-width: 340px;
+    border-left: 4px solid #7c3aed; /* Barra colorida lateral */
+    animation: toastIn 0.3s cubic-bezier(.16,1,.3,1);
+}
+
+/* Variantes de cor da barra lateral do toast */
+.toast.success { border-left-color: #22c55e; }
+.toast.info    { border-left-color: #3b82f6; }
+.toast.error   { border-left-color: #ef4444; }
+.toast.warning { border-left-color: #f59e0b; }
+
+/* Ícone do toast */
+.toast-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.toast.success .toast-icon { color: #22c55e; }
+.toast.info    .toast-icon { color: #3b82f6; }
+.toast.error   .toast-icon { color: #ef4444; }
+.toast.warning .toast-icon { color: #f59e0b; }
+
+/* Textos do toast */
+.toast-title { font-size: 0.88rem; font-weight: 700; color: #111827; }
+.toast-msg   { font-size: 0.8rem;  color: #6b7280; margin-top: 2px; }
+
+/* Botão X para fechar o toast manualmente */
+.toast-close {
+    margin-left: auto; background: none; border: none;
+    color: #9ca3af; cursor: pointer; font-size: 14px; padding: 0 0 0 8px;
+    flex-shrink: 0; align-self: center;
+}
+
+/* Animações de entrada e saída do toast */
+@keyframes toastIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+    from { opacity: 1; transform: translateY(0); max-height: 120px; }
+    to   { opacity: 0; transform: translateY(10px); max-height: 0; padding: 0; margin: 0; }
+}
+.toast.saindo { animation: toastOut 0.3s ease forwards; }
+
+
+/* ── 11. INDICADOR "AO VIVO" ───────────────────────────────── */
+/* Ponto verde pulsante no cabeçalho que indica monitorização
+   em tempo real das novas inscrições. */
+#live-indicator {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.72rem; color: #22c55e; font-weight: 600;
+}
+#live-indicator .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #22c55e;
+    animation: livePulse 1.4s ease-in-out infinite;
+}
+@keyframes livePulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(1.4); }
+}

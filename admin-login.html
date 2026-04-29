@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Administrativo - MARA E LU</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-form-side">
+      <div class="login-form-container">
+        <div class="login-form-header">
+          <div class="login-header-bar"></div>
+          <div class="login-header-text">
+            <span class="login-title-bold">Área do</span>
+            <span class="login-title-light">Desenvolvedor</span>
+          </div>
+        </div>
+        <form id="admin-login-form" class="login-form">
+          <div class="login-form-group">
+            <label for="admin-user" class="login-label">Usuário Admin</label>
+            <input type="text" id="admin-user" class="login-input" placeholder="ADMIN" required>
+          </div>
+          <div class="login-form-group">
+            <label for="admin-pass" class="login-label">Palavra-passe</label>
+            <input type="password" id="admin-pass" class="login-input" placeholder="admin123" required>
+          </div>
+          <button type="submit" class="btn btn-accent login-btn">Entrar como Admin</button>
+          <p style="margin-top: 12px; font-size: 0.82rem; color: #9ca3af; text-align: center;">
+            Utilizador padrão: <strong>ADMIN</strong> &nbsp;|&nbsp; Senha: <strong>admin123</strong>
+          </p>
+        </form>
+        <a href="index.html" class="login-back">Voltar ao início</a>
+      </div>
+    </div>
+  </div>
+  <script src="js/main.js"></script>
+    <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

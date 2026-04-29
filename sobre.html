@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+  Comentário:
+  Arquivo: sobre.html
+  Propósito: Página "Sobre Nós" — apresentação institucional do
+             Colégio Mara & Lú num único hero com fundo em parallax
+             (foto da escola) e um cartão branco centrado com a
+             missão e descrição.
+
+  Notas de design (defesa):
+  - Layout minimalista: 1 secção visível + footer.
+  - O fundo usa a foto real da escola com camada branca a 25% de
+    opacidade (efeito "véu") para garantir contraste de leitura.
+  - Toda a estilização principal vive em css/sobre.css.
+-->
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobre Nós - MARA E LU</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/sobre.css">
+</head>
+
+<body>
+
+  <!-- Comentário: Top header com links secundários (login + créditos) -->
+  <header class="top-header">
+    <a href="entrar.html">Entrar</a>
+    <span>|</span>
+    <a href="desenvolvedores.html">Desenvolvedores</a>
+  </header>
+
+  <!-- Comentário: Navbar principal partilhada com as restantes páginas -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="images/logo-mara-lu.png" alt="MARA E LU Logo">
+      <span>Mara & Lú</span>
+    </a>
+
+    <div class="navbar-content">
+      <div class="nav-links">
+        <a href="index.html">INÍCIO</a>
+        <a href="sobre.html">SOBRE</a>
+        <a href="cursos.html">NOSSOS CURSOS</a>
+        <a href="contacto.html">CONTACTO</a>
+      </div>
+
+      <div class="nav-buttons">
+        <a href="inscrever-se.html" class="btn btn-accent">Inscrever-se</a>
+        <a href="consultar-inscricao.html" class="btn btn-secondary">Consultar Inscrição</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO "SOBRE NÓS"
+       ------------------------------------------------------------
+       Imagem da escola em parallax (definida em .about-hero) com
+       um cartão branco semi-transparente (.about-content) centrado.
+       ============================================================ -->
+  <section class="about-hero">
+    <div class="about-content">
+      <h1 class="section-title">SOBRE NÓS</h1>
+
+      <p class="about-lead">Nossa missão é formar para transformar.</p>
+
+      <p class="about-text">
+        <strong>Mara &amp; Lú</strong> é uma instituição dedicada à excelência educacional,
+        focada em preparar cidadãos para os desafios do futuro através de um ensino
+        técnico e humano de qualidade.
+      </p>
+    </div>
+  </section>
+
+  <!-- Comentário: Footer simples (igual ao da pág "Nossos Cursos") -->
+  <footer class="footer">
+    <div class="footer-content" style="text-align: center; padding: 40px 0; background: #1a1a2e; color: white;">
+      <p>© 2026 MARA E LU. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Pedidos - MARA E LU</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/auth-guard.js"></script>
+  <style>
+    .pedidos-table { width:100%; border-collapse: collapse; margin-top:1rem; }
+    .pedidos-table th, .pedidos-table td { padding: 0.85rem 0.7rem; text-align:left; vertical-align:top; }
+    .pedidos-table thead tr { border-bottom: 2px solid var(--border, #e5e7eb); }
+    .pedidos-table tbody tr { border-bottom: 1px solid var(--border, #e5e7eb); }
+    .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.78rem; font-weight:600; }
+    .badge-pendente { background:#fef3c7; color:#92400e; }
+    .badge-aceite   { background:#d1fae5; color:#065f46; }
+    .badge-recusado { background:#fee2e2; color:#991b1b; }
+    .row-actions button { padding: 0.3rem 0.65rem; font-size:0.85rem; margin-right:4px; }
+    .empty { text-align:center; padding:2rem; color:#6b7280; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; gap:1rem; flex-wrap:wrap; }
+    .filter-tabs button {
+      padding: 0.4rem 0.9rem; border-radius:999px; border:1px solid #e5e7eb;
+      background:#fff; cursor:pointer; font-weight:600; font-size:0.85rem;
+    }
+    .filter-tabs button.active { background:#4C1D95; color:#fff; border-color:#4C1D95; }
+
+    /* Responsividade simples para a tabela */
+    @media (max-width: 720px) {
+      .pedidos-table thead { display:none; }
+      .pedidos-table tr { display:block; padding:0.6rem 0; }
+      .pedidos-table td {
+        display:block; padding:0.25rem 0;
+      }
+      .pedidos-table td::before {
+        content: attr(data-label) ": ";
+        font-weight:600; color:#374151;
+      }
+    }
+  </style>
+</head>
+<body style="background-color: var(--muted, #f3f4f6);">
+  <nav class="navbar">
+    <a href="Dashboard2.html" class="navbar-brand"><span>MARA &amp; LU - ADMIN</span></a>
+    <div class="nav-links" style="display: flex; gap: 1rem;">
+      <a href="Dashboard2.html">Dashboard</a>
+      <a href="#" onclick="logout(); return false;">Sair</a>
+    </div>
+  </nav>
+
+  <section class="container" style="padding: 2rem 1rem;">
+    <h1 class="section-title">Pedidos de Criação de Conta</h1>
+    <p style="color:#6b7280; margin-bottom:1rem;">
+      Gestão local dos pedidos submetidos publicamente para criar uma conta de administrador.
+      As alterações ficam guardadas no navegador (localStorage).
+    </p>
+
+    <div class="consultar-form-card">
+      <div class="toolbar">
+        <div class="filter-tabs" id="filtros">
+          <button data-filtro="todos"     class="active">Todos</button>
+          <button data-filtro="pendente">Pendentes</button>
+          <button data-filtro="aceite">Aceites</button>
+          <button data-filtro="recusado">Recusados</button>
+        </div>
+        <button class="btn btn-secondary" onclick="renderTabela()" style="padding:0.4rem 0.8rem;">
+          Recarregar
+        </button>
+      </div>
+
+      <table class="pedidos-table">
+        <thead>
+          <tr>
+            <th>Candidato</th>
+            <th>Email / Telefone</th>
+            <th>Cargo</th>
+            <th>Motivo</th>
+            <th>Data</th>
+            <th>Estado</th>
+            <th>Acções</th>
+          </tr>
+        </thead>
+        <tbody id="pedidos-lista">
+          <tr><td colspan="7" class="empty">A carregar pedidos…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script src="js/main.js"></script>
+  <script>
+    const STORAGE_KEY = 'admin_requests';
+    let filtroActual = 'todos';
+
+    function carregar() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    }
+    function gravar(lista) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(lista)); }
+      catch (e) { alert('Não foi possível guardar no navegador: ' + e.message); }
+    }
+
+    function escaparHTML(s) {
+      return String(s == null ? '' : s).replace(/[<>&"']/g, c => ({
+        '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+    function formatarData(s) {
+      if (!s) return '';
+      try {
+        const d = new Date(s);
+        return d.toLocaleDateString('pt-PT') + ' ' + d.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'});
+      } catch { return s; }
+    }
+
+    function renderTabela() {
+      const tbody = document.getElementById('pedidos-lista');
+      const todos = carregar();
+      const lista = filtroActual === 'todos'
+        ? todos
+        : todos.filter(p => p.estado === filtroActual);
+
+      if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty">Sem pedidos ${filtroActual === 'todos' ? '' : ' ' + filtroActual + 's'}.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = lista.map(p => {
+        const estado = p.estado || 'pendente';
+        const badgeCls = 'badge-' + estado;
+        const estadoLabel = estado.charAt(0).toUpperCase() + estado.slice(1);
+        const acoes = estado === 'pendente' ? `
+          <button class="btn btn-accent"    onclick="actualizarEstado('${p.id}','aceite')">Aceitar</button>
+          <button class="btn btn-secondary" onclick="actualizarEstado('${p.id}','recusado')">Recusar</button>
+        ` : `
+          <button class="btn btn-secondary" onclick="actualizarEstado('${p.id}','pendente')">Reabrir</button>
+          <button class="btn" style="background:#fee2e2;color:#991b1b;" onclick="apagarPedido('${p.id}')">Apagar</button>
+        `;
+        return `
+          <tr>
+            <td data-label="Candidato">${escaparHTML(p.nome)}</td>
+            <td data-label="Contacto">
+              <div>${escaparHTML(p.email)}</div>
+              <div style="color:#6b7280; font-size:0.85rem;">${escaparHTML(p.telefone || '—')}</div>
+            </td>
+            <td data-label="Cargo">${escaparHTML(p.cargo || '—')}</td>
+            <td data-label="Motivo" style="max-width:280px;">${escaparHTML(p.motivo || '—')}</td>
+            <td data-label="Data">${formatarData(p.createdAt)}</td>
+            <td data-label="Estado"><span class="badge ${badgeCls}">${estadoLabel}</span></td>
+            <td data-label="Acções" class="row-actions">${acoes}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function actualizarEstado(id, estado) {
+      const lista = carregar();
+      const idx = lista.findIndex(p => p.id === id);
+      if (idx < 0) return;
+      lista[idx].estado = estado;
+      lista[idx].atualizadoEm = new Date().toISOString();
+      gravar(lista);
+      renderTabela();
+    }
+
+    function apagarPedido(id) {
+      if (!confirm('Apagar definitivamente este pedido?')) return;
+      gravar(carregar().filter(p => p.id !== id));
+      renderTabela();
+    }
+
+    document.querySelectorAll('#filtros button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#filtros button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroActual = btn.dataset.filtro;
+        renderTabela();
+      });
+    });
+
+    renderTabela();
+    window.addEventListener('storage', e => { if (e.key === STORAGE_KEY) renderTabela(); });
+  </script>
+</body>
+</html>

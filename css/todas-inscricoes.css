@@ -1,0 +1,82 @@
+/* ============================================================
+   css/todas-inscricoes.css — Página "Todas as Inscrições"
+   ------------------------------------------------------------
+   Lista completa de candidatos (todos os estados: pendente,
+   aprovado, recusado). Partilha a mesma estrutura visual das
+   outras páginas admin com sidebar + tabela + modal.
+   ============================================================ */
+
+
+/* ── VARIÁVEIS E LAYOUT BASE ───────────────────────────────── */
+:root { --color-primary: #4C1D95; --color-bg: #f8f9fc; }
+
+/* Layout flex horizontal para sidebar + área principal */
+body { background-color: var(--color-bg); font-family: 'Inter', sans-serif; margin: 0; display: flex; }
+
+/* Sidebar fixa com 260px */
+.sidebar { width: 260px; background: white; border-right: 1px solid #e5e7eb; height: 100vh; position: fixed; z-index: 50; display: flex; flex-direction: column; }
+
+/* Conteúdo à direita da sidebar */
+main { margin-left: 260px; width: calc(100% - 260px); min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Cabeçalho roxo */
+.header-admin    { background-color: #4C1D95; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+.container-padding { padding: 2rem; }
+.card { background: white; padding: 2rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+
+
+/* ── NAVEGAÇÃO LATERAL ─────────────────────────────────────── */
+.nav-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; color: #4b5563; border-radius: 0.5rem; transition: all 0.2s; border: none; background: transparent; cursor: pointer; text-align: left; width: 100%; }
+.nav-item:hover  { background: #f9fafb; color: var(--color-primary); }
+.nav-item.active { background: #f3f4f6; color: var(--color-primary); font-weight: 600; }
+.submenu       { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; padding-left: 1.5rem; }
+.submenu.open  { max-height: 400px; }
+.rotate-icon        { transition: transform 0.3s; }
+.rotate-icon.active { transform: rotate(180deg); }
+
+
+/* ── TABELA DE TODAS AS INSCRIÇÕES ─────────────────────────── */
+.admin-table                 { width: 100%; text-align: left; border-collapse: collapse; }
+.admin-table thead           { background-color: #1f2937; color: white; text-transform: uppercase; font-size: 0.75rem; }
+.admin-table thead tr:hover  { background-color: #1f2937 !important; }
+.admin-table th              { padding: 1rem; border: none; }
+.admin-table td              { padding: 1rem; border-bottom: 1px solid #e5e7eb; }
+.admin-table tbody tr        { transition: background-color 0.2s; }
+.admin-table tbody tr:hover  { background-color: #f9fafb; cursor: default; }
+
+
+/* ── BADGES DE ESTADO (todos os tipos) ─────────────────────── */
+.badge          { padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+.badge-pending  { background-color: #fef9c3; color: #a16207; } /* Amarelo — Pendente */
+.badge-approved { background-color: #dcfce7; color: #15803d; } /* Verde — Aprovado */
+.badge-rejected { background-color: #fee2e2; color: #991b1b; } /* Vermelho — Recusado */
+
+
+/* ── UTILITÁRIOS CSS ───────────────────────────────────────── */
+.flex { display: flex; } .items-center { align-items: center; }
+.gap-3 { gap: 0.75rem; } .p-6 { padding: 1.5rem; }
+.border-b { border-bottom: 1px solid #e5e7eb; }
+.w-10 { width: 2.5rem; } .h-10 { height: 2.5rem; }
+.bg-blue-900 { background-color: #1e3a8a; }
+.rounded-full { border-radius: 9999px; } .justify-center { justify-content: center; }
+.text-white { color: white; } .font-bold { font-weight: 700; }
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.text-gray-800 { color: #1f2937; } .p-4 { padding: 1rem; }
+.flex-1 { flex: 1 1 0%; } .space-y-1 > * + * { margin-top: 0.25rem; }
+.w-full { width: 100%; } .gap-4 { gap: 1rem; } .mb-8 { margin-bottom: 2rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.text-gray-400 { color: #9ca3af; } .text-gray-600 { color: #4b5563; }
+.overflow-x-auto { overflow-x: auto; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.bg-white\/20 { background-color: rgba(255, 255, 255, 0.2); }
+.w-8 { width: 2rem; } .h-8 { height: 2rem; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-purple-600 { color: #7c3aed; }
+
+
+/* ── ANIMAÇÕES ─────────────────────────────────────────────── */
+/* Entrada suave dos modais (desliza de baixo para cima) */
+@keyframes modalSlideIn { from { transform:translateY(20px) scale(0.97); opacity:0 } to { transform:translateY(0) scale(1); opacity:1 } }
+/* Rotação contínua da engrenagem */
+@keyframes spin { from { transform:rotate(0deg) } to { transform:rotate(360deg) } }

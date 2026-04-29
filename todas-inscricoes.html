@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todas as Inscrições - MARA & LÚ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/auth-guard.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="css/todas-inscricoes.css">
+</head>
+<body class="flex">
+    <aside class="sidebar">
+        <div class="p-6 border-b flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold">L</div>
+            <span class="text-xl font-bold text-gray-800">Mara & Lú</span>
+        </div>
+        <nav class="p-4 flex-1 space-y-1">
+            <a href="Dashboard2.html" class="nav-item"><span class="flex items-center gap-3"><i class="fas fa-home"></i> Dashboard</span></a>
+            <div>
+                <button onclick="toggleMenu('m1', 'i1')" class="nav-item w-full active">
+                    <span class="flex items-center gap-3"><i class="fas fa-briefcase"></i> Inscrições e Matrículas</span>
+                    <i id="i1" class="fas fa-chevron-down text-xs rotate-icon active"></i>
+                </button>
+                <div id="m1" class="submenu open">
+                    <a href="lista-inscricoes.html" class="block py-2 text-sm hover:text-purple-600">Candidaturas Pendentes</a>
+                    <a href="aprovados.html" class="block py-2 text-sm hover:text-purple-600">Aprovados</a>
+                    <a href="todas-inscricoes.html" class="block py-2 text-sm text-purple-600 font-bold">Todas as Inscrições</a>
+                </div>
+            </div>
+            <div>
+                <button onclick="toggleMenu('m2', 'i2')" class="nav-item w-full">
+                    <span class="flex items-center gap-3"><i class="fas fa-book"></i> Gestão Acadêmica</span>
+                    <i id="i2" class="fas fa-chevron-down text-xs rotate-icon"></i>
+                </button>
+                <div id="m2" class="submenu">
+                    <a href="cursos-admin.html" class="block py-2 text-sm hover:text-purple-600">Cursos</a>
+                    <a href="vagas.html" class="block py-2 text-sm hover:text-purple-600">Gestão de Vagas</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="">
+        <header class="header-admin">
+            <div class="flex items-center gap-4">
+                
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fas fa-graduation-cap"></i></div>
+                    <span class="font-bold">Mara & Lú</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-padding">
+            <div class="flex items-center gap-4 mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Todas as Inscrições</h1>
+                <nav class="text-sm text-gray-400">
+                    <i class="fas fa-home"></i> Início > <span class="text-gray-600">Todas as Inscrições</span>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="flex flex-col md:flex-row gap-4 mb-8 items-end">
+                    <div class="flex-1 max-w-md">
+                        <input type="text" id="busca" onkeyup="carregarTodas()" placeholder="Buscar por código ou nome..." class="p-3 border rounded-md w-full">
+                    </div>
+                    <button onclick="carregarTodas()" class="bg-yellow-500 text-white px-8 py-3 rounded-md font-bold hover:bg-yellow-600 transition">Filtrar</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Candidato</th>
+                                <th>Idade</th>
+                                <th>Curso</th>
+                                <th>Data</th>
+                                <th>Estado</th>
+                                <th>Pagamento</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-todas" class="text-sm">
+                            <!-- Comentário:  JS popula aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/storage.js"></script>
+    <script src="js/admin-core.js"></script>
+    <script>
+        function toggleMenu(id, iconId) {
+            const menu = document.getElementById(id);
+            const icon = document.getElementById(iconId);
+            if(menu) menu.classList.toggle('open');
+            if(icon) icon.classList.toggle('active');
+        }
+
+        function carregarTodas() {
+            const inscricoes = AdminCore.getInscricoes();
+            const busca = document.getElementById('busca').value.toLowerCase().trim();
+            
+            const corpo = document.getElementById('lista-todas');
+            if(!corpo) return;
+            corpo.innerHTML = '';
+
+            const filtradas = inscricoes.filter(insc => {
+                const nome = (insc.nomeCompleto || '').toLowerCase();
+                const id = (insc.id || '').toString().toLowerCase();
+                return busca === '' || nome.includes(busca) || id.includes(busca);
+            });
+
+            if (filtradas.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400">Nenhuma inscrição encontrada</td></tr>';
+                return;
+            }
+
+            filtradas.forEach(insc => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50';
+                const badgeClass = insc.estado === 'Pendente' ? 'badge-pending' : (insc.estado === 'Aprovado' ? 'badge-approved' : 'badge-rejected');
+                const idadeExib = insc.idade != null ? insc.idade + ' anos' : calcularIdade(insc.dataNascimento);
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-xs font-bold text-purple-600">${insc.id}</td>
+                    <td class="p-4">${insc.nomeCompleto}</td>
+                    <td class="p-4">${idadeExib}</td>
+                    <td class="p-4">${insc.cursoLabel || insc.curso || 'N/A'}</td>
+                    <td class="p-4 text-gray-400">${insc.dataInscricao || '---'}</td>
+                    <td class="p-4"><span class="badge ${badgeClass}">${insc.estado}</span></td>
+                    <td class="p-4">${renderEstadoPagamento(insc)}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="verInscricao('${insc.id}')" style="background:#dbeafe; color:#1d4ed8; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#bfdbfe'" onmouseout="this.style.background='#dbeafe'">Ver</button>
+                        ${(!insc.pagamento || insc.pagamento.estado !== 'Pago') && insc.estado !== 'Rejeitado' ? `
+                            <button onclick="marcarPago('${insc.id}')" title="Registar pagamento manualmente" style="background:#fef3c7; color:#92400e; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'"><i class="fas fa-coins"></i> Marcar Pago</button>
+                        ` : ''}
+                        <button onclick="deletarInscricao('${insc.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Excluir</button>
+                    </td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        // ── Pagamento — badge dinâmica + acção manual de admin ──
+        function renderEstadoPagamento(insc) {
+            const p = insc.pagamento;
+            if (p && p.estado === 'Pago') {
+                const valor = Number(p.valor || 0).toLocaleString('pt-AO');
+                return `<span style="display:inline-flex;align-items:center;gap:5px;background:#d1fae5;color:#065f46;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;" title="${p.metodoLabel || p.metodo || ''} — ${p.transacaoId || ''}">
+                    <i class="fas fa-check-circle"></i> Pago · ${valor} Kz
+                </span>`;
+            }
+            if (insc.estado === 'Rejeitado') return '<span style="color:#9ca3af;font-size:12px;">N/A</span>';
+            return `<span style="display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;">
+                <i class="fas fa-clock"></i> Aguardando
+            </span>`;
+        }
+
+        async function marcarPago(id) {
+            const inscricoes = AdminCore.getInscricoes();
+            const insc = inscricoes.find(i => i.id === id);
+            if (!insc) return alert('Inscrição não encontrada.');
+            if (!confirm(`Confirmar pagamento manual da inscrição ${id} (${insc.nomeCompleto})?`)) return;
+            const TAXAS = {iniciacao:5000,'1':5000,'2':5000,'3':5000,'4':5000,'5':5000,'6':5000,'7':7500,'8':7500,'9':7500,'10':12000,'11':12000,'12':12000,'13':12000};
+            const valor = TAXAS[(insc.classe || '').toString()] || 5000;
+            const pagamento = {
+                estado:'Pago', metodo:'manual', metodoLabel:'Registo Manual (admin)',
+                valor, moeda:'AOA',
+                transacaoId:'MN' + Date.now().toString(36).toUpperCase(),
+                dataPagamento:new Date().toISOString(), registadoPor:'admin'
+            };
+            const r = await AppStorage.salvarPagamento(id, pagamento);
+            if (!r.ok && r.fonte !== 'offline') return alert('Falha ao registar o pagamento.');
+            AdminCore.addNotification(`Pagamento registado manualmente: ${insc.nomeCompleto} (${valor} Kz)`, 'success');
+            AdminCore.getInscricoes();
+            setTimeout(carregarTodas, 300);
+        }
+
+        function calcularIdade(dataNasc) {
+            if (!dataNasc) return 'N/D';
+            const hoje = new Date();
+            const nasc = new Date(dataNasc);
+            let idade = hoje.getFullYear() - nasc.getFullYear();
+            const m = hoje.getMonth() - nasc.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+            return isNaN(idade) ? 'N/D' : idade + ' anos';
+        }
+
+        // Usa AppStorage.getInscricaoComFotos para obter a versão completa
+        // (com imagens e PDFs) a partir do servidor, IndexedDB ou localStorage.
+        async function verInscricao(id) {
+            const insc = await AppStorage.getInscricaoComFotos(id);
+            if (!insc) return alert('Inscrição não encontrada.');
+
+            const modal   = document.getElementById('modal-inscricao');
+            const content = document.getElementById('modal-inscricao-content');
+
+            // Processar ficheiros anexos
+            const rawImgs = insc.fotos || insc.imagens || (insc.foto ? [insc.foto] : []);
+            const imagens = rawImgs.map(i => {
+                if (typeof i === 'string') return { label: '', src: i, isPdf: i.startsWith('data:application/pdf') };
+                return { label: i.campo || '', src: i.data || i.src || '', isPdf: (i.mime || '').includes('pdf'), nome: i.nome || '' };
+            });
+            window._todasModalImagens = imagens;
+
+            const labelMap = { foto_passe:'Fotografia tipo passe', cartao_vacinas:'Cartão de vacinas', copia_cedula:'Cópia do documento', atestado_medico:'Atestado médico' };
+
+            const thumbsHtml = imagens.map((item, idx) => {
+                const tip = item.label ? labelMap[item.label] || item.label : '';
+                if (item.isPdf) {
+                    return `<button onclick="setTodasViewer(${idx})" style="border:none;background:#f3f4f6;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;border:2px solid transparent;" class="thumb-btn">📄 PDF${tip?' ('+tip+')':''}</button>`;
+                }
+                return `<img src="${item.src}" onclick="setTodasViewer(${idx})" style="width:64px;height:64px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent;" title="${tip}" class="thumb-btn">`;
+            }).join('');
+
+            const galeriaHtml = imagens.length
+                ? `<div style="display:flex;flex-direction:column;gap:8px;">
+                    <div id="todas-viewer" style="width:100%;min-height:180px;background:#f3f4f6;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;"></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">${thumbsHtml}</div>
+                  </div>`
+                : `<div style="height:80px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:0.85rem;">Sem documentos</div>`;
+
+            modal.style.display = 'flex';
+            content.innerHTML = `
+                <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:220px;">${galeriaHtml}</div>
+                    <div style="flex:2;min-width:260px;">
+                        <h3 style="margin-top:0;color:#1e0a4a;">${insc.nomeCompleto || ''}</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">
+                            <p style="margin:0;"><strong>Código:</strong> ${insc.id}</p>
+                            <p style="margin:0;"><strong>Estado:</strong> ${insc.estado || ''}</p>
+                            <p style="margin:0;"><strong>Sexo:</strong> ${insc.sexo || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Idade:</strong> ${insc.idade ? insc.idade + ' anos' : calcularIdade(insc.dataNascimento)}</p>
+                            <p style="margin:0;"><strong>Data Nasc.:</strong> ${insc.dataNascimento || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Nacionalidade:</strong> ${insc.nacionalidade || 'N/D'}</p>
+                            <p style="margin:0;"><strong>BI / Documento:</strong> ${insc.documento || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Classe:</strong> ${insc.classe || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Período:</strong> ${insc.periodo || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Curso:</strong> ${insc.cursoLabel || insc.curso || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Telefone:</strong> ${insc.telefone || 'N/D'}</p>
+                            <p style="margin:0;"><strong>WhatsApp:</strong> ${insc.whatsapp || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Email:</strong> ${insc.email || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Morada:</strong> ${insc.morada || 'N/D'}</p>
+                            <p style="margin:0;"><strong>Data Inscrição:</strong> ${insc.dataInscricao || 'N/D'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            if (imagens.length) setTodasViewer(0);
+        }
+
+        function setTodasViewer(idx) {
+            const item   = (window._todasModalImagens || [])[idx];
+            const viewer = document.getElementById('todas-viewer');
+            if (!item || !viewer) return;
+            if (item.isPdf) {
+                viewer.innerHTML = `<iframe src="${item.src}" style="width:100%;height:260px;border:none;border-radius:8px;"></iframe>`;
+            } else {
+                viewer.innerHTML = `<img src="${item.src}" style="max-width:100%;max-height:260px;border-radius:8px;object-fit:contain;">`;
+            }
+        }
+
+        function deletarInscricao(id) {
+            if (!confirm('Tem certeza que deseja excluir esta inscrição?')) return;
+            const ok = AdminCore.deleteInscricao(id);
+            if (!ok) {
+                return alert('Não foi possível excluir a inscrição.');
+            }
+            AdminCore.addNotification(`Inscrição ${id} removida.`, 'info');
+            carregarTodas();
+        }
+
+        function fecharModal() { document.getElementById('modal-inscricao').style.display = 'none'; }
+
+        document.addEventListener('DOMContentLoaded', carregarTodas);
+    </script>
+    <!-- Botão de configurações (roda dentada) -->
+    <button id="settings-btn" onclick="openSettingsModal()" style="position:fixed;right:0;top:50%;transform:translateY(-50%);background:#1f2937;color:white;padding:12px;border:none;border-radius:8px 0 0 8px;cursor:pointer;z-index:65;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+        <i class="fas fa-cog" style="animation:spin 3s linear infinite;display:inline-block;"></i>
+    </button>
+    <!-- Modal de Configurações Estilizado -->
+    <div id="modal-config" style="display:none;position:fixed;inset:0;background:rgba(10,5,30,0.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;z-index:70;" onclick="if(event.target===this) closeSettingsModal()">
+        <div style="background:#fff;border-radius:16px;padding:28px;width:360px;max-width:92%;box-shadow:0 24px 60px rgba(10,5,40,0.28);animation:modalSlideIn 0.22s cubic-bezier(.16,1,.3,1);">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f0eeff;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4C1D95,#7c3aed);display:flex;align-items:center;justify-content:center;"><i class="fas fa-cog" style="color:white;font-size:15px;"></i></div>
+                    <div><h4 style="margin:0;font-size:1.05rem;font-weight:700;color:#1e0a4a;">Configurações</h4><p style="margin:0;font-size:0.78rem;color:#9ca3af;">Área administrativa</p></div>
+                </div>
+                <button onclick="closeSettingsModal()" style="background:#f3f4f6;border:none;cursor:pointer;width:30px;height:30px;border-radius:50%;font-size:16px;color:#6b7280;">&times;</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                <button onclick="window.location.href='index.html'" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;cursor:pointer;font-size:0.92rem;font-weight:600;color:#1e0a4a;text-align:left;width:100%;" onmouseover="this.style.background='#f5f0ff'" onmouseout="this.style.background='#fff'">
+                    <span style="width:34px;height:34px;border-radius:8px;background:#ede9fe;color:#4C1D95;display:flex;align-items:center;justify-content:center;"><i class="fas fa-globe"></i></span>
+                    <span><strong>Ver site público</strong><div style="font-size:0.75rem;color:#6b7280;font-weight:400;">Abrir a página principal</div></span>
+                </button>
+                <button onclick="logout()" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1.5px solid #fca5a5;background:#fff;cursor:pointer;font-size:0.92rem;font-weight:600;color:#dc2626;text-align:left;width:100%;" onmouseover="this.style.background='#fff1f1'" onmouseout="this.style.background='#fff'">
+                    <span style="width:34px;height:34px;border-radius:8px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;"><i class="fas fa-sign-out-alt"></i></span>
+                    <span><strong>Terminar sessão</strong><div style="font-size:0.75rem;color:#f87171;font-weight:400;">Sair da área administrativa</div></span>
+                </button>
+            </div>
+            <div style="margin-top:20px;padding-top:12px;border-top:1px solid #f0eeff;text-align:center;"><span style="font-size:0.72rem;color:#c4b5fd;">Colégio Mara &amp; Lú &bull; v1.0</span></div>
+        </div>
+    </div>
+    <script>
+        function openSettingsModal(){ const m=document.getElementById('modal-config'); if(m) m.style.display='flex'; }
+        function closeSettingsModal(){ const m=document.getElementById('modal-config'); if(m) m.style.display='none'; }
+    </script>
+    <!-- Comentário:  Modal -->
+    <div id="modal-inscricao" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;">
+        <div style="background:white; padding:20px; border-radius:8px; max-width:500px; width:90%; position:relative;">
+            <button onclick="fecharModal()" style="position:absolute; top:10px; right:10px; border:none; background:none; cursor:pointer;">&times;</button>
+            <div id="modal-inscricao-content"></div>
+        </div>
+    </div>
+    <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

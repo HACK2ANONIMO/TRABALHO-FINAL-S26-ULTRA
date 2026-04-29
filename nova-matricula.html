@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!-- Comentário: 
+    Arquivo: nova-matricula.html
+    Propósito: Formulário administrativo para criar uma nova matrícula/inscrição
+    manualmente via painel de administração.
+
+    Observações:
+    - Os dados inseridos são guardados em `localStorage['inscricoes']` por
+        conveniência durante o desenvolvimento. Em produção, substitua este
+        comportamento por uma API segura que valide e persista dados no servidor.
+    - A lista de `cursos` é lida de `localStorage['cursos']` quando presente.
+-->
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Matrícula - MARA & LU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-[#4C1D95] text-white p-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a href="Dashboard2.html" class="text-white font-bold"><i class="fas fa-arrow-left mr-2"></i>Voltar</a>
+            <span class="font-bold tracking-widest italic uppercase">Nova Matrícula</span>
+        </div>
+    </header>
+
+    <main class="p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Nova Matrícula</h1>
+        <p class="text-sm text-gray-600 mb-6">Preencha os dados para registrar uma nova matrícula.</p>
+
+        <form id="matriculaForm" class="bg-white rounded-lg shadow p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nome completo</label>
+                <input id="nome" type="text" required class="mt-1 block w-full border rounded p-2" placeholder="Nome do aluno">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">E-mail</label>
+                <input id="email" type="email" required class="mt-1 block w-full border rounded p-2" placeholder="email@exemplo.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Telefone</label>
+                <input id="telefone" type="tel" class="mt-1 block w-full border rounded p-2" placeholder="(99) 99999-9999">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Curso</label>
+                <select id="curso" class="mt-1 block w-full border rounded p-2"></select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="bg-[#4C1D95] text-white px-4 py-2 rounded">Salvar</button>
+                <a href="lista-inscricoes.html" class="px-4 py-2 border rounded">Cancelar</a>
+            </div>
+        </form>
+
+    <script>
+        function loadCursos(){
+            const sel = document.getElementById('curso');
+            sel.innerHTML = '';
+            const cursos = JSON.parse(localStorage.getItem('cursos')||'[]');
+            if(cursos.length===0){
+                sel.innerHTML = '<option>Design Web</option><option>Programação</option><option>Marketing</option>';
+            } else {
+                cursos.forEach(c=> sel.insertAdjacentHTML('beforeend', `<option>${escapeHtml(c.nome)}</option>`));
+            }
+        }
+
+        function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+        document.getElementById('matriculaForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const nome = document.getElementById('nome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
+            const curso = document.getElementById('curso').value;
+            if(!nome || !email){ alert('Nome e e-mail são obrigatórios.'); return; }
+            const codigo = 'INS'+Date.now().toString().slice(-6);
+            const arr = JSON.parse(localStorage.getItem('inscricoes')||'[]');
+            arr.push({codigo, nome, email, telefone, curso, data: new Date().toISOString().slice(0,10), estado: 'Pendente', pago: false});
+            localStorage.setItem('inscricoes', JSON.stringify(arr));
+            window.location.href = 'lista-inscricoes.html';
+        });
+
+        loadCursos();
+    </script>
+    </main>
+    <!-- Comentário: Fim do corpo da página -->
+</body>
+</html>

@@ -1,0 +1,342 @@
+/* ============================================================
+   css/consultar-inscricao.css — Página de Consulta de Inscrição
+   ------------------------------------------------------------
+   Estiliza:
+     • o popup de feedback da pesquisa (#popup-overlay)
+     • o link "Esqueci o meu código" e o seu modal
+     • os ajustes de espaçamento para ecrãs pequenos/quadrados
+   ============================================================ */
+
+
+/* ── OVERLAY (popup de aviso) ─────────────────────────────── */
+/* Esconde toda a página enquanto o popup de erro/sucesso está aberto */
+#popup-overlay {
+    display: none;                           /* Activado via JS */
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 30, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;                           /* respiração em mobile */
+}
+
+
+/* ── CARTÃO DO POPUP ──────────────────────────────────────── */
+#popup-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px 28px 24px;
+    width: 420px;
+    max-width: 100%;                         /* nunca ultrapassa o ecrã */
+    box-shadow: 0 24px 60px rgba(10, 5, 40, 0.28);
+    text-align: center;
+    animation: popupIn 0.25s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Animação de entrada suave */
+@keyframes popupIn {
+    from { transform: translateY(18px) scale(0.96); opacity: 0; }
+    to   { transform: translateY(0) scale(1);       opacity: 1; }
+}
+
+
+/* ── ÍCONE CIRCULAR DO POPUP ──────────────────────────────── */
+#popup-icon {
+    width: 62px; height: 62px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 26px;
+}
+#popup-icon.sucesso { background: #dcfce7; color: #16a34a; }
+#popup-icon.erro    { background: #fee2e2; color: #dc2626; }
+#popup-icon.info    { background: #dbeafe; color: #2563eb; }
+
+
+/* ── TEXTOS DO POPUP ──────────────────────────────────────── */
+#popup-titulo   { font-size: 1.15rem; font-weight: 700; color: #111827; margin: 0 0 8px; }
+#popup-mensagem { font-size: 0.9rem;  color: #4b5563;   line-height: 1.5; margin: 0 0 22px;
+                  /* Quebra suave para mensagens longas em mobile */
+                  overflow-wrap: anywhere; }
+
+
+/* ── BOTÃO OK DO POPUP ────────────────────────────────────── */
+#popup-btn          { background: linear-gradient(135deg, #4C1D95, #7c3aed); color: white; border: none;
+                      padding: 11px 32px; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+#popup-btn.btn-erro { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+
+
+/* ============================================================
+   LINK "ESQUECI O MEU CÓDIGO"
+   ============================================================ */
+.link-esqueci {
+    text-align: center;
+    margin: 16px 0 0;
+    font-size: 0.9rem;
+}
+.link-esqueci a {
+    color: #4C1D95;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.link-esqueci a:hover {
+    background: #f3e8ff;
+    text-decoration: underline;
+}
+
+
+/* ============================================================
+   MODAL DE RECUPERAÇÃO DO CÓDIGO
+   ============================================================ */
+.modal-recuperar {
+    display: none;                           /* Activado via JS */
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 30, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 9500;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;                           /* afasta dos bordos em mobile */
+    overflow-y: auto;                        /* permite scroll em ecrãs muito baixos */
+}
+
+.modal-recuperar-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px 26px 22px;
+    width: 460px;
+    max-width: 100%;
+    box-shadow: 0 24px 60px rgba(10, 5, 40, 0.3);
+    position: relative;
+    animation: popupIn 0.25s cubic-bezier(.16, 1, .3, 1);
+    max-height: 92vh;                        /* nunca maior que a viewport */
+    overflow-y: auto;
+}
+
+/* Botão "X" no canto superior direito */
+.modal-fechar {
+    position: absolute;
+    top: 10px; right: 14px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+.modal-fechar:hover { background: #f3f4f6; color: #111827; }
+
+
+/* Cabeçalho com ícone, título e subtítulo */
+.modal-cabecalho {
+    text-align: center;
+    margin-bottom: 18px;
+}
+.modal-icone {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: #f3e8ff;
+    color: #4C1D95;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 22px;
+}
+.modal-cabecalho h3 {
+    margin: 0 0 6px;
+    color: #1e0a4a;
+    font-size: 1.2rem;
+}
+.modal-cabecalho p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;                  /* impede texto sair da caixa */
+}
+
+
+/* Form: labels, inputs e botão */
+#form-recuperar .form-group {
+    margin-bottom: 14px;
+}
+#form-recuperar label {
+    display: block;
+    font-size: 0.85rem;
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+#form-recuperar label small {
+    color: #9ca3af;
+    font-weight: 400;
+}
+#form-recuperar .form-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+#form-recuperar .form-input:focus {
+    outline: none;
+    border-color: #4C1D95;
+    box-shadow: 0 0 0 3px rgba(76, 29, 149, 0.15);
+}
+#btn-recuperar {
+    width: 100%;
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+#btn-recuperar:disabled { opacity: 0.7; cursor: progress; }
+
+
+/* ── Resultado da recuperação ── */
+.recuperar-resultado {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+}
+.rec-sucesso {
+    color: #047857;
+    font-weight: 700;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.rec-erro {
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    overflow-wrap: anywhere;
+}
+
+/* Cada inscrição encontrada — cartão compacto */
+.rec-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 14px;
+    align-items: center;
+}
+.rec-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;                             /* impede overflow do nome */
+}
+.rec-info strong {
+    color: #1e0a4a;
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+}
+.rec-info small {
+    color: #6b7280;
+    font-size: 0.78rem;
+}
+.rec-codigo {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    background: #ede9fe;
+    color: #4C1D95;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    letter-spacing: 0.4px;
+    grid-column: 2;
+    grid-row: 1;
+}
+.rec-usar {
+    grid-column: 1 / -1;                       /* ocupa toda a largura no rodapé do card */
+    background: #4C1D95;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+.rec-usar:hover { background: #6d28d9; }
+
+
+/* ============================================================
+   AJUSTES RESPONSIVOS — telas pequenas e quadradas
+   ------------------------------------------------------------
+   Garante que cabeçalhos, formulário e cards ficam dentro do
+   viewport mesmo em ecrãs <420px ou em proporções quase 1:1.
+   ============================================================ */
+.consultar-form-container {
+    padding: 24px 16px 60px;
+}
+.consultar-form-card {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+.resultado-content {
+    word-wrap: break-word;
+}
+.resultado-item {
+    flex-wrap: wrap;                          /* o valor passa para baixo se faltar espaço */
+    gap: 4px 12px;
+}
+.resultado-value {
+    overflow-wrap: anywhere;                  /* corta nomes/valores longos sem sair da caixa */
+    word-break: break-word;
+    text-align: right;
+    flex: 1 1 60%;
+    min-width: 0;
+}
+
+@media (max-width: 520px) {
+    .consultar-form-container { padding: 18px 10px 40px; }
+    .consultar-form-card      { padding: 22px 18px; border-radius: 14px; }
+    .modal-recuperar-card     { padding: 22px 18px 18px; border-radius: 14px; }
+    .modal-cabecalho h3       { font-size: 1.05rem; }
+    .modal-cabecalho p        { font-size: 0.82rem; }
+    #form-recuperar .form-input { font-size: 0.9rem; padding: 10px 12px; }
+    .rec-item                 {
+        grid-template-columns: 1fr;            /* uma coluna em mobile */
+    }
+    .rec-codigo               { grid-column: 1; grid-row: auto; justify-self: start; }
+    .resultado-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .resultado-value { text-align: left; flex: 1 1 100%; }
+}

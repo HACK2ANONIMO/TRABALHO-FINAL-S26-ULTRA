@@ -1,0 +1,39 @@
+/* ============================================================
+   css/termos-servico.css — Página de Termos de Serviço
+   ------------------------------------------------------------
+   Idêntico ao css/politica-privacidade.css — ambas as páginas
+   partilham o mesmo estilo de documento de texto longo.
+   A classe .policy-page define um layout centrado e legível.
+   ============================================================ */
+
+
+/* ── CONTENTOR PRINCIPAL DA PÁGINA ────────────────────────── */
+/* Centraliza o texto e limita a largura para melhor leitura */
+.policy-page {
+    max-width: 800px;
+    margin: 60px auto;      /* Centrado com espaço acima */
+    padding: 0 24px 60px;
+    font-family: 'Inter', sans-serif;
+}
+
+
+/* ── TÍTULOS ───────────────────────────────────────────────── */
+.policy-page h1       { color: #4C1D95; font-size: 2rem; margin-bottom: 8px; }
+.policy-page .subtitle{ color: #6b7280; margin-bottom: 32px; font-size: 0.9rem; }
+.policy-page h2       { color: #1e293b; font-size: 1.2rem; margin: 28px 0 10px; }
+
+
+/* ── CORPO DO TEXTO ────────────────────────────────────────── */
+.policy-page p,
+.policy-page li { color: #374151; line-height: 1.8; font-size: 0.97rem; }
+.policy-page ul { padding-left: 1.5rem; margin: 8px 0; }
+.policy-page li { margin-bottom: 4px; }
+
+
+/* ── DIVISOR ───────────────────────────────────────────────── */
+.policy-divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+
+
+/* ── LINK DE RETORNO ───────────────────────────────────────── */
+.back-link       { display: inline-block; margin-bottom: 24px; color: #4C1D95; text-decoration: none; font-weight: 600; }
+.back-link:hover { text-decoration: underline; }

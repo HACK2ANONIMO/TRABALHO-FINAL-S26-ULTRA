@@ -1,0 +1,86 @@
+/* ============================================================
+   css/sobre.css — Página "Sobre Nós"
+   ------------------------------------------------------------
+   Estiliza a secção hero da página de apresentação do colégio,
+   com imagem de fundo em parallax e caixa de texto semi-transparente.
+   ============================================================ */
+
+
+/* ── SECÇÃO HERO COM IMAGEM DE FUNDO ──────────────────────── */
+/* Fundo com a imagem do colégio, parcialmente coberta por
+   uma camada branca a 25% de opacidade para suavizar o contraste
+   e tornar o texto mais legível. */
+.about-hero {
+    /* Gradiente branco a 25% de opacidade sobreposto à imagem.
+       Quanto menor o valor alpha, mais visível fica a imagem. */
+    background-image: linear-gradient(rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.25)),
+                      url('../images/mara dois.png'); /* Foto da escola */
+
+    background-size: cover;           /* A imagem cobre toda a secção */
+    background-position: center;      /* Centra a imagem */
+    background-repeat: no-repeat;
+    background-attachment: fixed;     /* Efeito Parallax: imagem fixa ao rolar */
+    padding: 8rem 1rem !important;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+}
+
+
+/* ── CAIXA DE TEXTO SEMI-TRANSPARENTE ──────────────────────── */
+/* Fundo branco a 90% de opacidade que envolve o texto,
+   garantindo legibilidade mesmo com a imagem de fundo visível. */
+.about-content {
+    max-width: 700px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);  /* Quase opaco, deixa ver o fundo */
+    padding: 3rem 2.5rem;
+    border-radius: 24px;                    /* Cantos bem arredondados */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    text-align: center;                     /* Texto centrado */
+}
+
+
+/* ── TÍTULO DA SECÇÃO ──────────────────────────────────────── */
+/* "SOBRE NÓS" em roxo, grande e em maiúsculas */
+.section-title {
+    color: #4C1D95;        /* Roxo principal da marca */
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 2.6rem);
+    margin: 0 0 1.2rem;
+    letter-spacing: 0.5px;
+}
+
+
+/* ── FRASE-MISSÃO (subtítulo) ──────────────────────────────── */
+/* "Nossa missão é formar para transformar." */
+.about-lead {
+    font-size: 1.15rem;
+    color: #333;
+    margin: 0 0 1.5rem;
+    font-weight: 500;
+}
+
+
+/* ── PARÁGRAFO DESCRITIVO ──────────────────────────────────── */
+.about-text {
+    color: #444;
+    line-height: 1.75;
+    font-size: 1rem;
+    margin: 0;
+}
+
+
+/* ── AJUSTES PARA TELAS PEQUENAS / QUADRADAS ──────────────── */
+@media (max-width: 600px) {
+    .about-hero {
+        padding: 5rem 1rem !important;
+        background-attachment: scroll; /* parallax pesa em mobile */
+    }
+    .about-content {
+        padding: 2rem 1.4rem;
+        border-radius: 18px;
+    }
+}
